@@ -1,99 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VR Viewer Selection</title>
     <style>
-        body {
-            display: flex;
-            margin: 0;
-            height: 100vh;
-        }
-        .list-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .list {
-            padding: 20px;
-            list-style-type: none;
-        }
-        .list-item {
-            padding: 10px;
-            border: 1px solid #ddd;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-        .list-item:hover, .list-item.selected {
-            background-color: #f0f0f0;
-        }
-        #saveButton {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            cursor: pointer;
-        }
+      body {
+        display: flex;
+        margin: 0;
+        height: 100vh;
+      }
+      .list-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .list {
+        padding: 20px;
+        list-style-type: none;
+      }
+      .list-item {
+        padding: 10px;
+        border: 1px solid #ddd;
+        margin-bottom: 5px;
+        cursor: pointer;
+      }
+      .list-item:hover,
+      .list-item.selected {
+        background-color: #f0f0f0;
+      }
+      #saveButton {
+        position: absolute;
+        bottom: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 20px;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
-
-<div class="list-container" id="sceneListContainer">
-    <ul class="list" id="sceneList">
+  </head>
+  <body>
+    <div class="list-container" id="sceneListContainer">
+      <ul class="list" id="sceneList">
         <!-- Scenes will be populated here -->
-    </ul>
-</div>
+      </ul>
+    </div>
 
-<div class="list-container" id="avatarListContainer">
-    <ul class="list" id="avatarList">
+    <div class="list-container" id="avatarListContainer">
+      <ul class="list" id="avatarList">
         <!-- Avatars will be populated here -->
-    </ul>
-</div>
+      </ul>
+    </div>
 
-<button id="saveButton">Make VR Scene</button>
+    <button id="saveButton">Make VR Scene</button>
 
-<script>
-    // Placeholder for scene and avatar data
-    const scenes = ['scene_1', 'scene_2'];
-    const avatars = ['avatar_1', 'avatar_2'];
+    <script>
+      // Placeholder for scene and avatar data
+      const scenes = ["scene_1", "scene_2"];
+      const avatars = ["avatar_1", "avatar_2"];
 
-    const sceneList = document.getElementById('sceneList');
-    const avatarList = document.getElementById('avatarList');
+      const sceneList = document.getElementById("sceneList");
+      const avatarList = document.getElementById("avatarList");
 
-    function populateList(listElement, items, type) {
-        items.forEach(item => {
-            const li = document.createElement('li');
-            li.textContent = item;
-            li.className = 'list-item';
-            li.onclick = function() {
-                document.querySelectorAll(`#${type}List .list-item`).forEach(i => {
-                    i.classList.remove('selected');
-                });
-                li.classList.add('selected');
-            };
-            listElement.appendChild(li);
+      function populateList(listElement, items, type) {
+        items.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          li.className = "list-item";
+          li.onclick = function () {
+            document
+              .querySelectorAll(`#${type}List .list-item`)
+              .forEach((i) => {
+                i.classList.remove("selected");
+              });
+            li.classList.add("selected");
+          };
+          listElement.appendChild(li);
         });
-    }
+      }
 
-    populateList(sceneList, scenes, 'scene');
-    populateList(avatarList, avatars, 'avatar');
+      populateList(sceneList, scenes, "scene");
+      populateList(avatarList, avatars, "avatar");
 
-    document.getElementById('saveButton').onclick = function() {
-        const selectedScene = document.querySelector('#sceneList .selected')?.textContent;
-        const selectedAvatar = document.querySelector('#avatarList .selected')?.textContent;
+      document.getElementById("saveButton").onclick = function () {
+        const selectedScene = document.querySelector(
+          "#sceneList .selected"
+        )?.textContent;
+        const selectedAvatar = document.querySelector(
+          "#avatarList .selected"
+        )?.textContent;
 
         if (selectedScene && selectedAvatar) {
-            // Replace URL with your FastAPI endpoint
-            const url = `editor.html?scene=${selectedScene}&avatar=${selectedAvatar}`;
-            window.location.href = url;
+          const url = `editor.html?scene=${selectedScene}&avatar=${selectedAvatar}`;
+          window.location.href = url;
         } else {
-            alert('Please select both a scene and an avatar.');
+          alert("Please select both a scene and an avatar.");
         }
-    };
-</script>
-
-</body>
+      };
+    </script>
+  </body>
 </html>
