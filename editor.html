@@ -455,14 +455,89 @@
     let avatar_name = getUrlParameter("avatar");
 
     // FILE PATH
+
+    // code by woog2roid.
+    let globalFileHandles = [];
+    const globalFileURLs = {};
+    let updatedFileTypes = [];
+
+    document.getElementById("dirPicker").addEventListener("click", async () => {
+      if (!window.showDirectoryPicker) {
+        alert("This browser does not support Directory Picker.");
+        return;
+      }
+
+      try {
+        const directoryHandle = await window.showDirectoryPicker();
+        const fileHandles = await traverseDirectory(directoryHandle);
+        alert("Folder selection is completed.");
+        //console.log(fileHandles);
+        globalFileHandles = fileHandles;
+
+        // example by woog2roid.
+        // Good Case.
+        const file = await globalFileHandles[1].handle.getFile();
+        // Error Case.
+        // const file = await fileHandles[0].getFile();
+        console.log(file.name);
+        const sceneMLPJSON = await getFileByFilePath("/scene/scene_1_mlp.json");
+        const sceneMLPURL = URL.createObjectURL(sceneMLPJSON);
+        const mlpData = await fetch(sceneMLPURL).then((response) =>
+          response.json()
+        );
+
+        console.log(mlpData);
+        const basePath = "";
+
+        const fileTypes = [
+          { path: `${basePath}/avatar/avatar_1.fbx`, label: "avatarFBX" },
+          { path: `${basePath}/avatar/avatar_1.json`, label: "avatarJSON" },
+          { path: `${basePath}/scene/scene_1.glb`, label: "sceneGLB" },
+          { path: `${basePath}/scene/scene_1.json`, label: "sceneJSON" },
+          { path: `${basePath}/scene/scene_1_mlp.json`, label: "sceneMLPJSON" },
+        ];
+
+        const objNum = mlpData["obj_num"];
+        for (let i = 0; i < objNum; i++) {
+          for (let j = 0; j < 2; j++) {
+            fileTypes.push({
+              path: `${basePath}/scene/scene_1_shape${i}.pngfeat${j}.png`,
+              label: `texture${i}_${j}`,
+            });
+          }
+        }
+
+        updatedFileTypes = await addURLsToFileTypes(fileTypes);
+        //console.log("test img:", test);
+
+        // example by woog2roid.
+        // Good Case: filePath parameter MUST same with entry's filePath.
+        // console.log(await getFileByFilePath("/1/0202.jpg"));
+        //displayImage(test);
+        // Error Case.
+        // console.log(await getFileByFilePath("./1/0202.jpg"));
+
+        init();
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
     var sceneBaseUrl = "/data/scene/" + scene_name + "/";
     var avatarBaseUrl = "/data/avatar/" + avatar_name + "/";
-
     var avatar;
 
-    init();
-
     function init() {
+      const url = getUrlByLabel(updatedFileTypes, "texture0_0");
+      console.log("testlog", url);
+
+      // const imgElement = document.createElement("img");
+      // imgElement.src = url;
+
+      // // 이미지를 표시할 DOM 요소에 추가
+      // const displayArea = document.getElementById("fileDisplayArea");
+      // displayArea.appendChild(imgElement);
+
       if (WebGL.isWebGL2Available() === false) {
         document.body.appendChild(WebGL.getWebGL2ErrorMessage());
         return;
@@ -528,7 +603,9 @@
       scene = new THREE.Scene();
       scene.add(controller1);
 
-      fetch(sceneBaseUrl + scene_name + "_mlp.json")
+      // code by seooyxx
+      const sceneMLPJSON = getUrlByLabel(updatedFileTypes, "sceneMLPJSON");
+      fetch(sceneMLPJSON)
         .then((response) => {
           return response.json();
         })
@@ -551,17 +628,22 @@
           let generateMipmaps = false;
 
           let format = ".png";
-          let texBaseUrl = sceneBaseUrl + scene_name + "_shape";
 
           // Load Textures
           for (let i = 0, il = json["obj_num"]; i < il; i++) {
-            let tex0 = new THREE.TextureLoader().load(
-              texBaseUrl + i.toFixed(0) + ".png" + "feat0" + format,
-              function () {
-                gLoadedPNGs++;
-                render();
-              }
+            let tex0Path = getUrlByLabel(
+              updatedFileTypes,
+              `texture${i.toFixed(0)}_0`
             );
+            let tex1Path = getUrlByLabel(
+              updatedFileTypes,
+              `texture${i.toFixed(0)}_1`
+            );
+
+            let tex0 = new THREE.TextureLoader().load(tex0Path, function () {
+              gLoadedPNGs++;
+              render();
+            });
             tex0.anisotropy = anisotropy;
             tex0.generateMipmaps = generateMipmaps;
             tex0.magFilter = magFilter;
@@ -570,13 +652,10 @@
             tex0.wrapS = wrap;
             tex0.wrapT = wrap;
 
-            let tex1 = new THREE.TextureLoader().load(
-              texBaseUrl + i.toFixed(0) + ".png" + "feat1" + format,
-              function () {
-                gLoadedPNGs++;
-                render();
-              }
-            );
+            let tex1 = new THREE.TextureLoader().load(tex1Path, function () {
+              gLoadedPNGs++;
+              render();
+            });
             tex1.anisotropy = anisotropy;
             tex1.generateMipmaps = generateMipmaps;
             tex1.magFilter = magFilter;
@@ -608,8 +687,9 @@
           draco.setDecoderConfig({ type: "js" });
           draco.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
           loader.setDRACOLoader(draco);
+          let sceneGLB = getUrlByLabel(updatedFileTypes, 'sceneGLB');
           const loadPromise = new Promise((resolve, reject) => {
-            loader.load(sceneBaseUrl + scene_name + ".glb", function (object) {
+            loader.load(sceneGLB, function (object) {
               resolve(object);
             });
           });
@@ -628,8 +708,9 @@
               const mergedGeometry = mergeBufferGeometries(shapeMeshes);
               const object = new THREE.Mesh(mergedGeometry, mat);
               mat.side = THREE.DoubleSide;
+              let sceneJSON = getUrlByLabel(updatedFileTypes, "sceneJSON");
 
-              fetch(sceneBaseUrl + scene_name + ".json")
+              fetch(sceneJSON)
                 .then((response) => response.json())
                 .then((data) => {
                   console.log(data);
@@ -653,14 +734,18 @@
           animate();
         });
 
+      console.log("makeavatar");
       var avatarLoader = new FBXLoader();
+      let avatarFBX = getUrlByLabel(updatedFileTypes, 'avatarFBX');
+      let avatarJSON = getUrlByLabel(updatedFileTypes, 'avatarJSON');
+
       avatarLoader.load(
-        avatarBaseUrl + avatar_name + ".fbx",
+        avatarFBX,
         function (object) {
           avatar = object;
           scene.add(avatar);
 
-          fetch(avatarBaseUrl + avatar_name + ".json")
+          fetch(avatarJSON)
             .then((response) => response.json())
             .then((data) => {
               const pos = data.objectData.position;
@@ -791,56 +876,27 @@
       }
     });
 
-    // code by woog2roid.
-    let globalFileHandles = [];
-    document.getElementById("dirPicker").addEventListener("click", async () => {
-      if (!window.showDirectoryPicker) {
-        alert("This browser does not support Directory Picker.");
-        return;
-      }
+    function getUrlByLabel(fileTypes, label) {
+      const fileType = fileTypes.find((fileType) => fileType.label === label);
+      return fileType ? fileType.url : null;
+    }
 
-      try {
-        const directoryHandle = await window.showDirectoryPicker();
-        const fileHandles = await traverseDirectory(directoryHandle);
-        alert("Folder selection is completed.");
-        console.log(fileHandles);
-        globalFileHandles = fileHandles;
-
-        // example by woog2roid.
-        // Good Case.
-        const file = await fileHandles[1].handle.getFile();
-        // Error Case.
-        // const file = await fileHandles[0].getFile();
-        console.log(file.name);
-
-        const test = await getFileByFilePath("/"+file.name);
-        console.log(test);
-
-        // example by woog2roid.
-        // Good Case: filePath parameter MUST same with entry's filePath.
-        // console.log(await getFileByFilePath("/1/0202.jpg"));
-        displayImage(test)
-        // Error Case.
-        // console.log(await getFileByFilePath("./1/0202.jpg"));
-      } catch (error) {
-        console.error(error);
-      }
-    });
-
+    // code by woog2roid
     async function displayImage(file) {
-            // 파일의 URL 생성
-            const fileURL = URL.createObjectURL(file);
+      // 파일의 URL 생성
+      console.log("makefile:" + file);
+      const fileURL = URL.createObjectURL(file);
+      console.log("makefileURL:" + fileURL);
 
-            // 이미지 엘리먼트 생성
-            const imgElement = document.createElement('img');
-            imgElement.src = fileURL;
-            imgElement.alt = file.name;
+      // 이미지 엘리먼트 생성
+      const imgElement = document.createElement("img");
+      imgElement.src = fileURL;
+      imgElement.alt = file.name;
 
-            // 이미지를 표시할 DOM 요소에 추가
-            const displayArea = document.getElementById('fileDisplayArea');
-            displayArea.appendChild(imgElement);
-        }
-
+      // 이미지를 표시할 DOM 요소에 추가
+      const displayArea = document.getElementById("fileDisplayArea");
+      displayArea.appendChild(imgElement);
+    }
 
     async function getFileByFilePath(filePath) {
       const fileHandleEntry = globalFileHandles.find(
@@ -870,7 +926,93 @@
     }
     // finished by woog2roid.
 
-    function saveAvatarData() {
+    // code by seooyxx
+    function findFileHandleByPath(relativePath) {
+      const normalizedPath = relativePath.startsWith("/")
+        ? relativePath
+        : `/${relativePath}`;
+      return globalFileHandles.find((entry) => entry.path === normalizedPath)
+        ?.handle;
+    }
+
+    async function fileHandleToURL(fileHandle) {
+      if (!fileHandle) {
+        throw new Error("File handle is not provided or found.");
+      }
+      const file = await fileHandle.getFile();
+      return URL.createObjectURL(file);
+    }
+
+    async function convertFilePathToURL(filePath) {
+      const fileHandle = findFileHandleByPath(filePath);
+      if (!fileHandle) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+      return await fileHandleToURL(fileHandle);
+    }
+
+    async function loadModelFilesAndConvertToURLs(basePath) {
+      const fileURLs = {};
+      const mlpHandle = await getFileByFilePath(
+        `${basePath}/scene/scene_1_mlp.json`
+      );
+      if (!mlpHandle) {
+        throw new Error("scene_1_mlp.json file not found.");
+      }
+      const mlpURL = URL.createObjectURL(mlpHandle);
+      const mlpData = await fetch(mlpURL).then((response) => response.json());
+      URL.revokeObjectURL(mlpURL);
+      console.log(mlpData);
+
+      const fileTypes = [
+        { path: `${basePath}/avatar/avatar_1.fbx`, label: "avatarFBX" },
+        { path: `${basePath}/avatar/avatar_1.json`, label: "avatarJSON" },
+        { path: `${basePath}/scene/scene_1.glb`, label: "sceneGLB" },
+        { path: `${basePath}/scene/scene_1.json`, label: "sceneJSON" },
+        { path: `${basePath}/scene/scene_1_mlp.json`, label: "sceneMLPJSON" },
+      ];
+
+      const objNum = mlpData["obj_num"];
+      for (let i = 0; i < objNum; i++) {
+        for (let j = 0; j < 2; j++) {
+          fileTypes.push({
+            path: `${basePath}/scene/scene_1_shape${i}.pngfeat${j}.png`,
+            label: `texture${i}_${j}`,
+          });
+        }
+      }
+
+      for (const fileType of fileTypes) {
+        try {
+          const fileHandle = await getFileByFilePath(fileType.path);
+          const url = URL.createObjectURL(fileHandle);
+          globalFileURLs[fileType.label] = url;
+          fileURLs[fileType.label] = url;
+        } catch (error) {
+          console.error(`Error loading ${fileType.label}:`, error);
+        }
+      }
+
+      return fileURLs;
+    }
+
+    async function addURLsToFileTypes(fileTypes) {
+      const updates = fileTypes.map(async (fileType) => {
+        try {
+          const fileBlob = await getFileByFilePath(fileType.path);
+          const fileURL = URL.createObjectURL(fileBlob);
+          fileType.url = fileURL;
+        } catch (error) {
+          console.error(`Error getting file for ${fileType.label}:`, error);
+          fileType.url = null;
+        }
+      });
+
+      await Promise.all(updates);
+      return fileTypes;
+    }
+
+    async function saveAvatarData() {
       const avatarData = {
         avatar_id: "avatar_name_here",
         scene_id: "scene_name_here",
@@ -893,21 +1035,6 @@
           },
         },
       };
-
-      fetch("http://localhost:8000/save-avatar-data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(avatarData),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Success:", data);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
     }
   </script>
 </html>
