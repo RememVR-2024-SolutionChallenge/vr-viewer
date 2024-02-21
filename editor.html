@@ -160,6 +160,7 @@
     <div id="overlayDom">
       <button id="backButton" onclick="window.history.back()">Back</button>
       <button id="saveButton">Save</button>
+      <input type="file" id="fileInput" accept="image/*" capture>
       <button id="dirPicker">Import VR Resource Folder</button>
       <div id="fileDisplayArea"></div>
     </div>
@@ -794,37 +795,20 @@
     // code by woog2roid.
     let globalFileHandles = [];
     document.getElementById("dirPicker").addEventListener("click", async () => {
-      if (!window.showDirectoryPicker) {
-        alert("This browser does not support Directory Picker.");
-        return;
-      }
+      var inputElement = document.getElementById('fileInput');
+        var files = inputElement.files;
+        console.log("hello");
+        if (files.length > 0) {
+            const file = files[0];
+            console.log(file.name);
 
-      try {
-        const directoryHandle = await window.showDirectoryPicker();
-        const fileHandles = await traverseDirectory(directoryHandle);
-        alert("Folder selection is completed.");
-        console.log(fileHandles);
-        globalFileHandles = fileHandles;
+            const test = await getFileByFilePath("/" + file.name);
+            console.log(test);
 
-        // example by woog2roid.
-        // Good Case.
-        const file = await fileHandles[1].handle.getFile();
-        // Error Case.
-        // const file = await fileHandles[0].getFile();
-        console.log(file.name);
-
-        const test = await getFileByFilePath("/"+file.name);
-        console.log(test);
-
-        // example by woog2roid.
-        // Good Case: filePath parameter MUST same with entry's filePath.
-        // console.log(await getFileByFilePath("/1/0202.jpg"));
-        displayImage(test)
-        // Error Case.
-        // console.log(await getFileByFilePath("./1/0202.jpg"));
-      } catch (error) {
-        console.error(error);
-      }
+            displayImage(test);
+        } else {
+            console.error('No file selected.');
+        }
     });
 
     async function displayImage(file) {
