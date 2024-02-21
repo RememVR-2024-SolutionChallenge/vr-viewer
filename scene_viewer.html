@@ -1,103 +1,858 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VR Viewer Selection</title>
+    <script id="gbuffer-vert" type="x-shader/x-vertex">
+      in vec3 position;
+      in vec2 uv;
+
+      out vec2 vUv;
+      out vec3 rayDirection;
+
+      uniform mat4 modelViewMatrix;
+      uniform mat4 projectionMatrix;
+      uniform mat4 modelMatrix;
+      uniform vec3 cameraPosition;
+
+      void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          rayDirection = (modelMatrix * vec4(position, 1.0)).xyz - cameraPosition;
+      }
+    </script>
+
+    <script
+      async
+      src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"
+    ></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./js/three.module.js"
+        }
+      }
+    </script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <style>
+      html,
       body {
-        display: flex;
+        padding: 0;
         margin: 0;
-        height: 100vh;
       }
-      .list-container {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      body {
+        background: #333333;
+        color: rgba(255, 255, 255, 0.8);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       }
-      .list {
-        padding: 20px;
-        list-style-type: none;
+
+      #wrapper {
+        margin: auto;
+        text-align: center;
       }
-      .list-item {
-        padding: 10px;
-        border: 1px solid #ddd;
-        margin-bottom: 5px;
+
+      #container {
+        margin: auto;
+        display: inline-block;
+      }
+
+      #info {
+        text-align: center;
+        position: absolute;
+        right: 20px;
+        bottom: 25px;
+        z-index: 10;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+
+      #VRButton,
+      #ARButton {
+        position: relative !important;
+        left: 20px !important;
+        bottom: 130px !important;
+        font-size: 30px !important;
+        padding: 20px 10px !important;
+        width: 50vw !important;
+        max-width: 400px !important;
+        background-color: #333333 !important;
+        border-radius: 15px !important;
+        display: block;
+        left: 25vw;
+      }
+
+      #backButton {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        padding: 10px 20px;
+        background-color: rgba(128, 128, 128, 0.5);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-size: 25px;
         cursor: pointer;
       }
-      .list-item:hover,
-      .list-item.selected {
-        background-color: #f0f0f0;
-      }
+
       #saveButton {
         position: absolute;
-        bottom: 90px;
-        left: 50%;
-        transform: translateX(-50%);
+        top: 80px;
+        left: 20px;
         padding: 10px 20px;
+        background-color: rgba(128, 128, 128, 0.5);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-size: 25px;
         cursor: pointer;
+      }
+
+      #fileInput {
+        position: absolute;
+        top: 140px;
+        left: 20px;
+        padding: 10px 20px;
+        background-color: rgba(128, 128, 128, 0.5);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-size: 25px;
+        cursor: pointer;
+      }
+
+      #saveButton:hover {
+        background-color: rgba(128, 128, 128, 0.8);
+      }
+
+      #backButton:hover {
+        background-color: rgba(128, 128, 128, 0.8);
+      }
+
+      #fileInput:hover {
+        background-color: rgba(128, 128, 128, 0.8);
+      }
+
+      #controlSlider {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: rgba(128, 128, 128, 0.5);
+        padding: 10px;
+        border-radius: 15px;
+        color: white;
+        font-size: 14px;
+      }
+
+      #controlSlider input[type="range"] {
+        width: 100%;
+      }
+
+      #controlSlider:hover {
+        background-color: rgba(128, 128, 128, 0.7);
       }
     </style>
   </head>
+
   <body>
-    <div class="list-container" id="sceneListContainer">
-      <ul class="list" id="sceneList">
-        <!-- Scenes will be populated here -->
-      </ul>
+    <div id="overlayDom">
+      <button id="backButton" onclick="window.history.back()">Back</button>
+      <button id="saveButton">Save</button>
+      <input
+        type="file"
+        id="fileInput"
+        accept="image/*"
+        webkitdirectory
+        multiple
+      />
+      <div id="fileDisplayArea"></div>
+    <div id="wrapper">
+      <div id="container"></div>
+
+      <div id="info" style="font-size: 20px">
+        <div id="fpsdisplay"></div>
+        <div id="sizedisplay"></div>
+      </div>
     </div>
+  </body>
 
-    <div class="list-container" id="avatarListContainer">
-      <ul class="list" id="avatarList">
-        <!-- Avatars will be populated here -->
-      </ul>
-    </div>
+  <script type="module">
+    import * as THREE from "three";
 
-    <button id="saveButton">Make VR Scene</button>
+    import WebGL from "./js/WebGL.js";
+    import { OBJLoader } from "./js/OBJLoader.js";
+    import { GLTFLoader } from "./js/GLTFLoader.js";
+    import { FBXLoader } from "./js/FBXLoader.js";
+    import { VRButton } from "./js/VRButton.js";
+    import { ARButton } from "./js/ARButton.js";
+    import { mergeBufferGeometries } from "./js/BufferGeometryUtils.js";
+    import { OrbitControls } from "./js/OrbitControls.js";
+    import { DRACOLoader } from "./js/DRACOLoader.js";
 
-    <script>
-      // Placeholder for scene and avatar data
-      const scenes = ["scene_1", "scene_2"];
-      const avatars = ["avatar_1", "avatar_2"];
+    var loaded = false;
 
-      const sceneList = document.getElementById("sceneList");
-      const avatarList = document.getElementById("avatarList");
+    const viewDependenceNetworkShaderFunctions = /* glsl */ `
+              precision mediump float;
 
-      function populateList(listElement, items, type) {
-        items.forEach((item) => {
-          const li = document.createElement("li");
-          li.textContent = item;
-          li.className = "list-item";
-          li.onclick = function () {
-            document
-              .querySelectorAll(`#${type}List .list-item`)
-              .forEach((i) => {
-                i.classList.remove("selected");
-              });
-            li.classList.add("selected");
-          };
-          listElement.appendChild(li);
-        });
+              layout(location = 0) out vec4 pc_FragColor;
+
+              in vec2 vUv;
+              in vec3 rayDirection;
+
+              uniform mediump sampler2D tDiffuse0;
+              uniform mediump sampler2D tDiffuse1;
+
+              mediump vec3 evaluateNetwork( mediump vec4 f0, mediump vec4 f1, mediump vec4 viewdir) {
+                  mediump mat4 intermediate_one = mat4(
+                      BIAS_LIST_ZERO
+                  );
+                  mat4 input_values = mat4(f0, f1, __J9__, vec4(0.0));
+
+                  intermediate_one += input_values[0][0] * mat4(__W0_0__)
+                      + input_values[0][1] * mat4(__W0_1__)
+                      + input_values[0][2] * mat4(__W0_2__)
+                      + input_values[0][3] * mat4(__W0_3__)
+                      + input_values[1][0] * mat4(__W0_4__)
+                      + input_values[1][1] * mat4(__W0_5__)
+                      + input_values[1][2] * mat4(__W0_6__)
+                      + input_values[1][3] * mat4(__W0_7__)
+                      + input_values[2][0] * mat4(__W0_8__)
+                      + input_values[2][1] * mat4(__W0_9__)
+                      + input_values[2][2] * mat4(__W0_10__) /*ViewDir*/;
+                  intermediate_one[0] = max(intermediate_one[0], 0.0);
+                  intermediate_one[1] = max(intermediate_one[1], 0.0);
+                  intermediate_one[2] = max(intermediate_one[2], 0.0);
+                  intermediate_one[3] = max(intermediate_one[3], 0.0);
+
+                  mediump mat4 intermediate_two = mat4(
+                      BIAS_LIST_ONE
+                  );
+                  intermediate_two += intermediate_one[0][0] * mat4(__W1_0__)
+                      + intermediate_one[0][1] * mat4(__W1_1__)
+                      + intermediate_one[0][2] * mat4(__W1_2__)
+                      + intermediate_one[0][3] * mat4(__W1_3__)
+                      + intermediate_one[1][0] * mat4(__W1_4__)
+                      + intermediate_one[1][1] * mat4(__W1_5__)
+                      + intermediate_one[1][2] * mat4(__W1_6__)
+                      + intermediate_one[1][3] * mat4(__W1_7__)
+                      + intermediate_one[2][0] * mat4(__W1_8__)
+                      + intermediate_one[2][1] * mat4(__W1_9__)
+                      + intermediate_one[2][2] * mat4(__W1_10__)
+                      + intermediate_one[2][3] * mat4(__W1_11__)
+                      + intermediate_one[3][0] * mat4(__W1_12__)
+                      + intermediate_one[3][1] * mat4(__W1_13__)
+                      + intermediate_one[3][2] * mat4(__W1_14__)
+                      + intermediate_one[3][3] * mat4(__W1_15__);
+                  intermediate_two[0] = max(intermediate_two[0], 0.0);
+                  intermediate_two[1] = max(intermediate_two[1], 0.0);
+                  intermediate_two[2] = max(intermediate_two[2], 0.0);
+                  intermediate_two[3] = max(intermediate_two[3], 0.0);
+
+                  mediump vec3 result = vec3(
+                      BIAS_LIST_TWO
+                  );
+                  result += intermediate_two[0][0] * vec3(__W2_0__)
+                          + intermediate_two[0][1] * vec3(__W2_1__)
+                          + intermediate_two[0][2] * vec3(__W2_2__)
+                          + intermediate_two[0][3] * vec3(__W2_3__)
+                          + intermediate_two[1][0] * vec3(__W2_4__)
+                          + intermediate_two[1][1] * vec3(__W2_5__)
+                          + intermediate_two[1][2] * vec3(__W2_6__)
+                          + intermediate_two[1][3] * vec3(__W2_7__)
+                          + intermediate_two[2][0] * vec3(__W2_8__)
+                          + intermediate_two[2][1] * vec3(__W2_9__)
+                          + intermediate_two[2][2] * vec3(__W2_10__)
+                          + intermediate_two[2][3] * vec3(__W2_11__)
+                          + intermediate_two[3][0] * vec3(__W2_12__)
+                          + intermediate_two[3][1] * vec3(__W2_13__)
+                          + intermediate_two[3][2] * vec3(__W2_14__)
+                          + intermediate_two[3][3] * vec3(__W2_15__);
+                  result = 1.0 / (1.0 + exp(-result));
+                  return result;
+              }
+
+
+              void main() {
+                  vec4 diffuse1 = texture( tDiffuse0, vUv );
+                  if(diffuse1.r == 0.0) discard;
+                  vec4 diffuse0 = vec4( normalize(rayDirection), 0.0 );
+                  vec4 diffuse2 = texture( tDiffuse1, vUv );
+
+                  // deal with iphone
+                  diffuse1.a = diffuse1.a*2.0-1.0;
+                  diffuse2.a = diffuse2.a*2.0-1.0;
+
+                  pc_FragColor.rgb = evaluateNetwork(diffuse1, diffuse2, diffuse0);
+                  pc_FragColor.a = 1.0;
+              }
+          `;
+
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+      var results = regex.exec(location.search);
+      return results === null
+        ? ""
+        : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    function createViewDependenceFunctions(network_weights, j9) {
+      let width = network_weights["0_bias"].length;
+      let biasListZero = "";
+      for (let i = 0; i < width; i++) {
+        let bias = network_weights["0_bias"][i];
+        biasListZero += Number(bias).toFixed(7);
+        if (i + 1 < width) {
+          biasListZero += ", ";
+        }
       }
 
-      populateList(sceneList, scenes, "scene");
-      populateList(avatarList, avatars, "avatar");
-
-      document.getElementById("saveButton").onclick = function () {
-        const selectedScene = document.querySelector(
-          "#sceneList .selected"
-        )?.textContent;
-        const selectedAvatar = document.querySelector(
-          "#avatarList .selected"
-        )?.textContent;
-
-        if (selectedScene && selectedAvatar) {
-          const url = `editor.html?scene=${selectedScene}&avatar=${selectedAvatar}`;
-          window.location.href = url;
-        } else {
-          alert("Please select both a scene and an avatar.");
+      width = network_weights["1_bias"].length;
+      let biasListOne = "";
+      for (let i = 0; i < width; i++) {
+        let bias = network_weights["1_bias"][i];
+        biasListOne += Number(bias).toFixed(7);
+        if (i + 1 < width) {
+          biasListOne += ", ";
         }
-      };
-    </script>
-  </body>
+      }
+
+      width = network_weights["2_bias"].length;
+      let biasListTwo = "";
+      for (let i = 0; i < width; i++) {
+        let bias = network_weights["2_bias"][i];
+        biasListTwo += Number(bias).toFixed(7);
+        if (i + 1 < width) {
+          biasListTwo += ", ";
+        }
+      }
+      let channelsZero = network_weights["0_weights"].length;
+      let channelsOne = network_weights["0_bias"].length;
+      let channelsTwo = network_weights["1_bias"].length;
+      let channelsThree = network_weights["2_bias"].length;
+
+      let fragmentShaderSource = viewDependenceNetworkShaderFunctions.replace(
+        new RegExp("NUM_CHANNELS_ZERO", "g"),
+        channelsZero
+      );
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("NUM_CHANNELS_ONE", "g"),
+        channelsOne
+      );
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("NUM_CHANNELS_TWO", "g"),
+        channelsTwo
+      );
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("NUM_CHANNELS_THREE", "g"),
+        channelsThree
+      );
+
+      for (let i = 0; i < network_weights["0_weights"].length; i++) {
+        fragmentShaderSource = fragmentShaderSource.replace(
+          new RegExp(`__W0_${i}__`, "g"),
+          network_weights["0_weights"][i].join(", ")
+        );
+      }
+      for (let i = 0; i < network_weights["1_weights"].length; i++) {
+        fragmentShaderSource = fragmentShaderSource.replace(
+          new RegExp(`__W1_${i}__`, "g"),
+          network_weights["1_weights"][i].join(", ")
+        );
+      }
+      for (let i = 0; i < network_weights["2_weights"].length; i++) {
+        fragmentShaderSource = fragmentShaderSource.replace(
+          new RegExp(`__W2_${i}__`, "g"),
+          network_weights["2_weights"][i].join(", ")
+        );
+      }
+
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("BIAS_LIST_ZERO", "g"),
+        biasListZero
+      );
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("BIAS_LIST_ONE", "g"),
+        biasListOne
+      );
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("BIAS_LIST_TWO", "g"),
+        biasListTwo
+      );
+
+      fragmentShaderSource = fragmentShaderSource.replace(
+        new RegExp("__J9__", "g"),
+        j9
+      );
+
+      return fragmentShaderSource;
+    }
+
+    let container;
+
+    let camera, scene, renderer, controls;
+    let controller1, raycaster;
+
+    let gLastFrame = window.performance.now();
+    let oldMilliseconds = 1000;
+
+    let gLoadedPNGs = 0;
+    let gTotalPNGs = 0;
+
+    let object_rescale = 1.0;
+
+    let object_offset_x = 0.0;
+    let object_offset_y = 0.6;
+    let object_offset_z = -0.5;
+    let cam_target = new THREE.Vector3(0, 0, -1);
+    let cam_pos = new THREE.Vector3(0, 1.6, 0);
+    let near_plane = 0.1;
+
+    let framebufferScale = 1.0;
+    let foveation = 0.5;
+
+    let j9 = "vec4(viewdir.x, -viewdir.z, viewdir.y, 0.0)"; //switch y-z axes
+
+    let scene_name = getUrlParameter("scene");
+    let avatar_name = getUrlParameter("avatar");
+
+    // FILE PATH
+
+    let globalFileHandles = [];
+    const globalFileURLs = {};
+    let updatedFileTypes = [];
+
+    document
+      .getElementById("fileInput")
+      .addEventListener("change", async function (event) {
+        const files = event.target.files;
+        const fileTypes = [];
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileURL = URL.createObjectURL(file);
+          const webkitRelativePath = file.webkitRelativePath;
+          const label = await processFilename(file.name);
+
+          console.log(file.name);
+          console.log(fileURL);
+          console.log(label);
+
+          fileTypes.push({
+            name: file.name,
+            url: fileURL,
+            path: webkitRelativePath,
+            label: label,
+          });
+        }
+
+        updatedFileTypes = fileTypes;
+        init();
+      });
+
+    var sceneBaseUrl = "/data/scene/" + scene_name + "/";
+    var avatarBaseUrl = "/data/avatar/" + avatar_name + "/";
+    var avatar;
+
+    function init() {
+      console.log("testlog", updatedFileTypes);
+      const url = getUrlByLabel(updatedFileTypes, "texture0_0");
+
+      // const imgElement = document.createElement("img");
+      // imgElement.src = url;
+
+      // // 이미지를 표시할 DOM 요소에 추가
+      // const displayArea = document.getElementById("fileDisplayArea");
+      // displayArea.appendChild(imgElement);
+
+      if (WebGL.isWebGL2Available() === false) {
+        document.body.appendChild(WebGL.getWebGL2ErrorMessage());
+        return;
+      }
+
+      container = document.getElementById("container");
+
+      renderer = new THREE.WebGLRenderer({
+        powerPreference: "high-performance",
+        precision: "highp",
+      });
+      renderer.setPixelRatio(1);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(new THREE.Color("rgb(255, 255, 255)"), 0);
+
+      renderer.xr.enabled = true;
+      renderer.xr.setFramebufferScaleFactor(framebufferScale);
+      renderer.xr.setFoveation(foveation);
+      renderer.sortObjects = false;
+      container.appendChild(renderer.domElement);
+
+      //on webxr session start, add the camera to a group and move the group up 1.3m
+      renderer.xr.addEventListener("sessionstart", function () {
+        let group = new THREE.Group();
+        group.add(camera);
+        scene.add(group);
+
+        group.position.y = 1.3;
+      });
+
+      navigator.xr.isSessionSupported("immersive-ar").then((supported) => {
+        if (supported) {
+          container.appendChild(
+            ARButton.createButton(renderer, {
+              requiredFeatures: ["local", "hit-test"],
+              optionalFeatures: ["dom-overlay"],
+              domOverlay: { root: document.getElementById("overlayDom") },
+            })
+          );
+        } else {
+          container.appendChild(VRButton.createButton(renderer));
+        }
+      });
+
+      camera = new THREE.PerspectiveCamera(
+        47,
+        1.0,
+        near_plane * object_rescale,
+        25 * object_rescale
+      );
+      camera.position.copy(cam_pos);
+
+      raycaster = new THREE.Raycaster();
+      controller1 = renderer.xr.getController(0);
+      controller1.addEventListener("selectstart", onSelectStart);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.copy(cam_target);
+      controls.enableDamping = true;
+      controls.screenSpacePanning = true;
+
+      scene = new THREE.Scene();
+      scene.add(controller1);
+
+      const sceneMLPJSON = getUrlByLabel(updatedFileTypes, "scenemlpjson");
+      fetch(sceneMLPJSON)
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          gTotalPNGs = json["obj_num"] * 2;
+
+          let network_weights = json;
+          let fragmentShaderSource = createViewDependenceFunctions(
+            network_weights,
+            j9
+          );
+
+          let newmats = [];
+
+          let magFilter = THREE.NearestFilter;
+          let minFilter = THREE.NearestFilter;
+          let anisotropy = 0;
+          let wrap = THREE.ClampToEdgeWrapping;
+          let flipY = false;
+          let generateMipmaps = false;
+
+          let format = ".png";
+
+          // Load Textures
+          for (let i = 0, il = json["obj_num"]; i < il; i++) {
+            let tex0Path = getUrlByLabel(
+              updatedFileTypes,
+              `texture${i.toFixed(0)}_0`
+            );
+            let tex1Path = getUrlByLabel(
+              updatedFileTypes,
+              `texture${i.toFixed(0)}_1`
+            );
+
+            let tex0 = new THREE.TextureLoader().load(tex0Path, function () {
+              gLoadedPNGs++;
+              render();
+            });
+            tex0.anisotropy = anisotropy;
+            tex0.generateMipmaps = generateMipmaps;
+            tex0.magFilter = magFilter;
+            tex0.minFilter = minFilter;
+            tex0.flipY = flipY;
+            tex0.wrapS = wrap;
+            tex0.wrapT = wrap;
+
+            let tex1 = new THREE.TextureLoader().load(tex1Path, function () {
+              gLoadedPNGs++;
+              render();
+            });
+            tex1.anisotropy = anisotropy;
+            tex1.generateMipmaps = generateMipmaps;
+            tex1.magFilter = magFilter;
+            tex1.minFilter = minFilter;
+            tex1.flipY = flipY;
+            tex1.wrapS = wrap;
+            tex1.wrapT = wrap;
+
+            newmats.push(
+              new THREE.RawShaderMaterial({
+                name: "mat_shape" + i,
+                side: THREE.DoubleSide,
+                vertexShader: document
+                  .querySelector("#gbuffer-vert")
+                  .textContent.trim(),
+                fragmentShader: fragmentShaderSource,
+                depthFunc: THREE.LessEqualDepth,
+                uniforms: {
+                  tDiffuse0: { value: tex0 },
+                  tDiffuse1: { value: tex1 },
+                },
+                glslVersion: THREE.GLSL3,
+              })
+            );
+          }
+          // Load mesh from single GLB
+          var draco = new DRACOLoader();
+          var loader = new GLTFLoader();
+          draco.setDecoderConfig({ type: "js" });
+          draco.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
+          loader.setDRACOLoader(draco);
+          let sceneGLB = getUrlByLabel(updatedFileTypes, "sceneglb");
+          const loadPromise = new Promise((resolve, reject) => {
+            loader.load(sceneGLB, function (object) {
+              resolve(object);
+            });
+          });
+
+          loadPromise.then((gltf) => {
+            newmats.forEach((mat, shape_index) => {
+              let shapeMeshes = [];
+              gltf.scene.traverse(function (child) {
+                if (child.isMesh) {
+                  if (child.name.includes("shape" + shape_index)) {
+                    shapeMeshes.push(child.geometry);
+                  }
+                }
+              });
+              const mergedGeometry = mergeBufferGeometries(shapeMeshes);
+              const object = new THREE.Mesh(mergedGeometry, mat);
+              mat.side = THREE.DoubleSide;
+              let sceneJSON = getUrlByLabel(updatedFileTypes, "scenejson");
+
+              fetch(sceneJSON)
+                .then((response) => response.json())
+                .then((data) => {
+                  console.log(data);
+                  const pos = data.objectData.position;
+                  const scale = data.objectData.scale;
+                  const rot = data.objectData.rotation;
+                  object.position.set(pos.x, pos.y, pos.z);
+                  object.scale.set(scale.x, scale.y, scale.z);
+                  object.rotation.set(rot.x, rot.y, rot.z);
+                  scene.add(object);
+                })
+                .catch((error) => {
+                  console.error("Error loading scene JSON:", error);
+                });
+            });
+          });
+
+          window.addEventListener("resize", onWindowResize, false);
+          onWindowResize();
+          animate();
+        });
+
+      console.log("makeavatar");
+      var avatarLoader = new FBXLoader();
+      let avatarFBX = getUrlByLabel(updatedFileTypes, "avatarfbx");
+      let avatarJSON = getUrlByLabel(updatedFileTypes, "avatarjson");
+
+      avatarLoader.load(
+        avatarFBX,
+        function (object) {
+          avatar = object;
+          scene.add(avatar);
+
+          fetch(avatarJSON)
+            .then((response) => response.json())
+            .then((data) => {
+              const pos = data.objectData.position;
+              const scale = data.objectData.scale;
+              const rot = data.objectData.rotation;
+              console.log(pos);
+
+              avatar.position.set(pos.x, pos.y, pos.z);
+              avatar.scale.set(scale.x, scale.y, scale.z);
+              avatar.rotation.setFromQuaternion(
+                new THREE.Quaternion(rot.x, rot.y, rot.z, rot.w)
+              );
+            });
+        },
+        undefined,
+        function (error) {
+          console.error(error);
+        }
+      );
+
+      var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+
+      var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(0, 1, 0);
+      scene.add(directionalLight);
+    }
+
+    function onWindowResize() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(width * framebufferScale, height * framebufferScale);
+      renderer.domElement.style.maxWidth = `${width}px`;
+      renderer.domElement.style.maxHeight = `${height}px`;
+
+      render();
+    }
+
+    function updateFPSCounter() {
+      let currentFrame = window.performance.now();
+      let milliseconds = currentFrame - gLastFrame;
+      let smoothMilliseconds = oldMilliseconds * 0.95 + milliseconds * 0.05;
+      let smoothFps = 1000 / smoothMilliseconds;
+      gLastFrame = currentFrame;
+      oldMilliseconds = smoothMilliseconds;
+      if (gLoadedPNGs != gTotalPNGs) {
+        document.getElementById("fpsdisplay").innerHTML =
+          "<br>  Loading PNGs... " +
+          gLoadedPNGs.toFixed(0) +
+          "/" +
+          gTotalPNGs.toFixed(0);
+      } else {
+        if (!loaded) {
+          loaded = true;
+
+          let ARButton = document.getElementById("ARButton");
+          if (ARButton) {
+            document.body.style.background = "transparent";
+            ARButton.style.display = "block";
+          }
+          let VRButton = document.getElementById("VRButton");
+          if (VRButton) {
+            VRButton.style.display = "block";
+          }
+        }
+        document.getElementById("fpsdisplay").innerHTML =
+          "FPS: " + smoothFps.toFixed(1);
+      }
+    }
+
+
+    function animate() {
+      renderer.setAnimationLoop(render);
+    }
+
+    function render() {
+      controls.update();
+
+      renderer.render(scene, camera);
+
+      if (!renderer.xr.isPresenting) {
+        updateFPSCounter();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", (event) => {
+      const saveButton = document.getElementById("saveButton");
+      if (saveButton) {
+        saveButton.addEventListener("click", saveAvatarData);
+      }
+    });
+
+    function getUrlByLabel(fileTypes, label) {
+      const fileType = fileTypes.find((fileType) => fileType.label === label);
+      return fileType ? fileType.url : null;
+    }
+
+    async function processFilename(filename) {
+      const nameParts = filename.split("/");
+      const basename = nameParts[nameParts.length - 1];
+
+      const baseName = basename.split(".").slice(0, -1).join(".");
+      const extension = basename.split(".").pop();
+
+      if (baseName.startsWith("avatar_")) {
+        if (extension === "fbx") {
+          return "avatarfbx";
+        } else if (extension === "json") {
+          return "avatarjson";
+        }
+      } else if (baseName.startsWith("scene_")) {
+        if (baseName.endsWith("mlp")) {
+          return "scenemlpjson";
+        } else if (extension === "glb") {
+          return "sceneglb";
+        } else if (extension === "json") {
+          return "scenejson";
+        } else if (baseName.includes("shape")) {
+          const match = baseName.match(/scene_1_shape(\d+)\.pngfeat(\d+)/);
+          if (match) {
+            const shapeIndex = match[1];
+            const textureIndex = match[2];
+            return `texture${shapeIndex}_${textureIndex}`;
+          }
+        }
+      }
+      return "unknown";
+    }
+
+    async function getFileByFilePath(filePath) {
+      const fileHandleEntry = globalFileHandles.find(
+        (entry) => entry.path === filePath
+      );
+
+      if (fileHandleEntry) {
+        return await fileHandleEntry.handle.getFile();
+      } else {
+        console.error("File not found:", filePath);
+        return null;
+      }
+    }
+
+    async function traverseDirectory(directoryHandle, currentPath = "") {
+      let files = [];
+      for await (const entry of directoryHandle.values()) {
+        const entryPath = `${currentPath}/${entry.name}`;
+        if (entry.kind === "file") {
+          files.push({ handle: entry, path: entryPath });
+        } else if (entry.kind === "directory") {
+          const nestedFiles = await traverseDirectory(entry, entryPath);
+          files = files.concat(nestedFiles);
+        }
+      }
+      return files;
+    }
+
+    function findFileHandleByPath(relativePath) {
+      const normalizedPath = relativePath.startsWith("/")
+        ? relativePath
+        : `/${relativePath}`;
+      return globalFileHandles.find((entry) => entry.path === normalizedPath)
+        ?.handle;
+    }
+
+    async function fileHandleToURL(fileHandle) {
+      if (!fileHandle) {
+        throw new Error("File handle is not provided or found.");
+      }
+      const file = await fileHandle.getFile();
+      return URL.createObjectURL(file);
+    }
+
+    async function convertFilePathToURL(filePath) {
+      const fileHandle = findFileHandleByPath(filePath);
+      if (!fileHandle) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+      return await fileHandleToURL(fileHandle);
+    }
+
+  </script>
 </html>
