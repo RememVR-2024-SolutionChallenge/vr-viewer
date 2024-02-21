@@ -160,7 +160,13 @@
     <div id="overlayDom">
       <button id="backButton" onclick="window.history.back()">Back</button>
       <button id="saveButton">Save</button>
-      <input type="file" id="fileInput" accept="image/*">
+      <input
+        type="file"
+        id="fileInput"
+        accept="image/*"
+        webkitdirectory
+        multiple
+      />
       <button id="dirPicker">Import VR Resource Folder</button>
       <div id="fileDisplayArea"></div>
     </div>
@@ -231,100 +237,100 @@
     var loaded = false;
 
     const viewDependenceNetworkShaderFunctions = /* glsl */ `
-            precision mediump float;
+              precision mediump float;
 
-            layout(location = 0) out vec4 pc_FragColor;
+              layout(location = 0) out vec4 pc_FragColor;
 
-            in vec2 vUv;
-            in vec3 rayDirection;
+              in vec2 vUv;
+              in vec3 rayDirection;
 
-            uniform mediump sampler2D tDiffuse0;
-            uniform mediump sampler2D tDiffuse1;
+              uniform mediump sampler2D tDiffuse0;
+              uniform mediump sampler2D tDiffuse1;
 
-            mediump vec3 evaluateNetwork( mediump vec4 f0, mediump vec4 f1, mediump vec4 viewdir) {
-                mediump mat4 intermediate_one = mat4(
-                    BIAS_LIST_ZERO
-                );
-                mat4 input_values = mat4(f0, f1, __J9__, vec4(0.0));
+              mediump vec3 evaluateNetwork( mediump vec4 f0, mediump vec4 f1, mediump vec4 viewdir) {
+                  mediump mat4 intermediate_one = mat4(
+                      BIAS_LIST_ZERO
+                  );
+                  mat4 input_values = mat4(f0, f1, __J9__, vec4(0.0));
 
-                intermediate_one += input_values[0][0] * mat4(__W0_0__)
-                    + input_values[0][1] * mat4(__W0_1__)
-                    + input_values[0][2] * mat4(__W0_2__)
-                    + input_values[0][3] * mat4(__W0_3__)
-                    + input_values[1][0] * mat4(__W0_4__)
-                    + input_values[1][1] * mat4(__W0_5__)
-                    + input_values[1][2] * mat4(__W0_6__)
-                    + input_values[1][3] * mat4(__W0_7__)
-                    + input_values[2][0] * mat4(__W0_8__)
-                    + input_values[2][1] * mat4(__W0_9__)
-                    + input_values[2][2] * mat4(__W0_10__) /*ViewDir*/;
-                intermediate_one[0] = max(intermediate_one[0], 0.0);
-                intermediate_one[1] = max(intermediate_one[1], 0.0);
-                intermediate_one[2] = max(intermediate_one[2], 0.0);
-                intermediate_one[3] = max(intermediate_one[3], 0.0);
+                  intermediate_one += input_values[0][0] * mat4(__W0_0__)
+                      + input_values[0][1] * mat4(__W0_1__)
+                      + input_values[0][2] * mat4(__W0_2__)
+                      + input_values[0][3] * mat4(__W0_3__)
+                      + input_values[1][0] * mat4(__W0_4__)
+                      + input_values[1][1] * mat4(__W0_5__)
+                      + input_values[1][2] * mat4(__W0_6__)
+                      + input_values[1][3] * mat4(__W0_7__)
+                      + input_values[2][0] * mat4(__W0_8__)
+                      + input_values[2][1] * mat4(__W0_9__)
+                      + input_values[2][2] * mat4(__W0_10__) /*ViewDir*/;
+                  intermediate_one[0] = max(intermediate_one[0], 0.0);
+                  intermediate_one[1] = max(intermediate_one[1], 0.0);
+                  intermediate_one[2] = max(intermediate_one[2], 0.0);
+                  intermediate_one[3] = max(intermediate_one[3], 0.0);
 
-                mediump mat4 intermediate_two = mat4(
-                    BIAS_LIST_ONE
-                );
-                intermediate_two += intermediate_one[0][0] * mat4(__W1_0__)
-                    + intermediate_one[0][1] * mat4(__W1_1__)
-                    + intermediate_one[0][2] * mat4(__W1_2__)
-                    + intermediate_one[0][3] * mat4(__W1_3__)
-                    + intermediate_one[1][0] * mat4(__W1_4__)
-                    + intermediate_one[1][1] * mat4(__W1_5__)
-                    + intermediate_one[1][2] * mat4(__W1_6__)
-                    + intermediate_one[1][3] * mat4(__W1_7__)
-                    + intermediate_one[2][0] * mat4(__W1_8__)
-                    + intermediate_one[2][1] * mat4(__W1_9__)
-                    + intermediate_one[2][2] * mat4(__W1_10__)
-                    + intermediate_one[2][3] * mat4(__W1_11__)
-                    + intermediate_one[3][0] * mat4(__W1_12__)
-                    + intermediate_one[3][1] * mat4(__W1_13__)
-                    + intermediate_one[3][2] * mat4(__W1_14__)
-                    + intermediate_one[3][3] * mat4(__W1_15__);
-                intermediate_two[0] = max(intermediate_two[0], 0.0);
-                intermediate_two[1] = max(intermediate_two[1], 0.0);
-                intermediate_two[2] = max(intermediate_two[2], 0.0);
-                intermediate_two[3] = max(intermediate_two[3], 0.0);
+                  mediump mat4 intermediate_two = mat4(
+                      BIAS_LIST_ONE
+                  );
+                  intermediate_two += intermediate_one[0][0] * mat4(__W1_0__)
+                      + intermediate_one[0][1] * mat4(__W1_1__)
+                      + intermediate_one[0][2] * mat4(__W1_2__)
+                      + intermediate_one[0][3] * mat4(__W1_3__)
+                      + intermediate_one[1][0] * mat4(__W1_4__)
+                      + intermediate_one[1][1] * mat4(__W1_5__)
+                      + intermediate_one[1][2] * mat4(__W1_6__)
+                      + intermediate_one[1][3] * mat4(__W1_7__)
+                      + intermediate_one[2][0] * mat4(__W1_8__)
+                      + intermediate_one[2][1] * mat4(__W1_9__)
+                      + intermediate_one[2][2] * mat4(__W1_10__)
+                      + intermediate_one[2][3] * mat4(__W1_11__)
+                      + intermediate_one[3][0] * mat4(__W1_12__)
+                      + intermediate_one[3][1] * mat4(__W1_13__)
+                      + intermediate_one[3][2] * mat4(__W1_14__)
+                      + intermediate_one[3][3] * mat4(__W1_15__);
+                  intermediate_two[0] = max(intermediate_two[0], 0.0);
+                  intermediate_two[1] = max(intermediate_two[1], 0.0);
+                  intermediate_two[2] = max(intermediate_two[2], 0.0);
+                  intermediate_two[3] = max(intermediate_two[3], 0.0);
 
-                mediump vec3 result = vec3(
-                    BIAS_LIST_TWO
-                );
-                result += intermediate_two[0][0] * vec3(__W2_0__)
-                        + intermediate_two[0][1] * vec3(__W2_1__)
-                        + intermediate_two[0][2] * vec3(__W2_2__)
-                        + intermediate_two[0][3] * vec3(__W2_3__)
-                        + intermediate_two[1][0] * vec3(__W2_4__)
-                        + intermediate_two[1][1] * vec3(__W2_5__)
-                        + intermediate_two[1][2] * vec3(__W2_6__)
-                        + intermediate_two[1][3] * vec3(__W2_7__)
-                        + intermediate_two[2][0] * vec3(__W2_8__)
-                        + intermediate_two[2][1] * vec3(__W2_9__)
-                        + intermediate_two[2][2] * vec3(__W2_10__)
-                        + intermediate_two[2][3] * vec3(__W2_11__)
-                        + intermediate_two[3][0] * vec3(__W2_12__)
-                        + intermediate_two[3][1] * vec3(__W2_13__)
-                        + intermediate_two[3][2] * vec3(__W2_14__)
-                        + intermediate_two[3][3] * vec3(__W2_15__);
-                result = 1.0 / (1.0 + exp(-result));
-                return result;
-            }
+                  mediump vec3 result = vec3(
+                      BIAS_LIST_TWO
+                  );
+                  result += intermediate_two[0][0] * vec3(__W2_0__)
+                          + intermediate_two[0][1] * vec3(__W2_1__)
+                          + intermediate_two[0][2] * vec3(__W2_2__)
+                          + intermediate_two[0][3] * vec3(__W2_3__)
+                          + intermediate_two[1][0] * vec3(__W2_4__)
+                          + intermediate_two[1][1] * vec3(__W2_5__)
+                          + intermediate_two[1][2] * vec3(__W2_6__)
+                          + intermediate_two[1][3] * vec3(__W2_7__)
+                          + intermediate_two[2][0] * vec3(__W2_8__)
+                          + intermediate_two[2][1] * vec3(__W2_9__)
+                          + intermediate_two[2][2] * vec3(__W2_10__)
+                          + intermediate_two[2][3] * vec3(__W2_11__)
+                          + intermediate_two[3][0] * vec3(__W2_12__)
+                          + intermediate_two[3][1] * vec3(__W2_13__)
+                          + intermediate_two[3][2] * vec3(__W2_14__)
+                          + intermediate_two[3][3] * vec3(__W2_15__);
+                  result = 1.0 / (1.0 + exp(-result));
+                  return result;
+              }
 
 
-            void main() {
-                vec4 diffuse1 = texture( tDiffuse0, vUv );
-                if(diffuse1.r == 0.0) discard;
-                vec4 diffuse0 = vec4( normalize(rayDirection), 0.0 );
-                vec4 diffuse2 = texture( tDiffuse1, vUv );
+              void main() {
+                  vec4 diffuse1 = texture( tDiffuse0, vUv );
+                  if(diffuse1.r == 0.0) discard;
+                  vec4 diffuse0 = vec4( normalize(rayDirection), 0.0 );
+                  vec4 diffuse2 = texture( tDiffuse1, vUv );
 
-                // deal with iphone
-                diffuse1.a = diffuse1.a*2.0-1.0;
-                diffuse2.a = diffuse2.a*2.0-1.0;
+                  // deal with iphone
+                  diffuse1.a = diffuse1.a*2.0-1.0;
+                  diffuse2.a = diffuse2.a*2.0-1.0;
 
-                pc_FragColor.rgb = evaluateNetwork(diffuse1, diffuse2, diffuse0);
-                pc_FragColor.a = 1.0;
-            }
-        `;
+                  pc_FragColor.rgb = evaluateNetwork(diffuse1, diffuse2, diffuse0);
+                  pc_FragColor.a = 1.0;
+              }
+          `;
 
     function getUrlParameter(name) {
       name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -457,80 +463,45 @@
 
     // FILE PATH
 
-    // code by woog2roid.
     let globalFileHandles = [];
     const globalFileURLs = {};
     let updatedFileTypes = [];
 
-    document.getElementById("dirPicker").addEventListener("click", async () => {
-      if (!window.showDirectoryPicker) {
-        alert("This browser does not support Directory Picker.");
-        return;
-      }
+    document
+      .getElementById("fileInput")
+      .addEventListener("change", async function (event) {
+        const files = event.target.files;
+        const fileTypes = [];
 
-      try {
-        const directoryHandle = await window.showDirectoryPicker();
-        const fileHandles = await traverseDirectory(directoryHandle);
-        alert("Folder selection is completed.");
-        //console.log(fileHandles);
-        globalFileHandles = fileHandles;
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileURL = URL.createObjectURL(file);
+          const webkitRelativePath = file.webkitRelativePath;
+          const label = await processFilename(file.name);
 
-        // example by woog2roid.
-        // Good Case.
-        const file = await globalFileHandles[1].handle.getFile();
-        // Error Case.
-        // const file = await fileHandles[0].getFile();
-        console.log(file.name);
-        const sceneMLPJSON = await getFileByFilePath("/scene/scene_1_mlp.json");
-        const sceneMLPURL = URL.createObjectURL(sceneMLPJSON);
-        const mlpData = await fetch(sceneMLPURL).then((response) =>
-          response.json()
-        );
+          console.log(file.name);
+          console.log(fileURL);
+          console.log(label);
 
-        console.log(mlpData);
-        const basePath = "";
-
-        const fileTypes = [
-          { path: `${basePath}/avatar/avatar_1.fbx`, label: "avatarFBX" },
-          { path: `${basePath}/avatar/avatar_1.json`, label: "avatarJSON" },
-          { path: `${basePath}/scene/scene_1.glb`, label: "sceneGLB" },
-          { path: `${basePath}/scene/scene_1.json`, label: "sceneJSON" },
-          { path: `${basePath}/scene/scene_1_mlp.json`, label: "sceneMLPJSON" },
-        ];
-
-        const objNum = mlpData["obj_num"];
-        for (let i = 0; i < objNum; i++) {
-          for (let j = 0; j < 2; j++) {
-            fileTypes.push({
-              path: `${basePath}/scene/scene_1_shape${i}.pngfeat${j}.png`,
-              label: `texture${i}_${j}`,
-            });
-          }
+          fileTypes.push({
+            name: file.name,
+            url: fileURL,
+            path: webkitRelativePath,
+            label: label,
+          });
         }
 
-        updatedFileTypes = await addURLsToFileTypes(fileTypes);
-        //console.log("test img:", test);
-
-        // example by woog2roid.
-        // Good Case: filePath parameter MUST same with entry's filePath.
-        // console.log(await getFileByFilePath("/1/0202.jpg"));
-        //displayImage(test);
-        // Error Case.
-        // console.log(await getFileByFilePath("./1/0202.jpg"));
-
+        updatedFileTypes = fileTypes;
         init();
-      } catch (error) {
-        console.error(error);
-      }
-    });
+      });
 
     var sceneBaseUrl = "/data/scene/" + scene_name + "/";
     var avatarBaseUrl = "/data/avatar/" + avatar_name + "/";
     var avatar;
 
     function init() {
+      console.log("testlog", updatedFileTypes);
       const url = getUrlByLabel(updatedFileTypes, "texture0_0");
-      console.log("testlog", url);
 
       // const imgElement = document.createElement("img");
       // imgElement.src = url;
@@ -605,7 +576,7 @@
       scene.add(controller1);
 
       // code by seooyxx
-      const sceneMLPJSON = getUrlByLabel(updatedFileTypes, "sceneMLPJSON");
+      const sceneMLPJSON = getUrlByLabel(updatedFileTypes, "scenemlpjson");
       fetch(sceneMLPJSON)
         .then((response) => {
           return response.json();
@@ -688,7 +659,7 @@
           draco.setDecoderConfig({ type: "js" });
           draco.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
           loader.setDRACOLoader(draco);
-          let sceneGLB = getUrlByLabel(updatedFileTypes, 'sceneGLB');
+          let sceneGLB = getUrlByLabel(updatedFileTypes, "sceneglb");
           const loadPromise = new Promise((resolve, reject) => {
             loader.load(sceneGLB, function (object) {
               resolve(object);
@@ -709,7 +680,7 @@
               const mergedGeometry = mergeBufferGeometries(shapeMeshes);
               const object = new THREE.Mesh(mergedGeometry, mat);
               mat.side = THREE.DoubleSide;
-              let sceneJSON = getUrlByLabel(updatedFileTypes, "sceneJSON");
+              let sceneJSON = getUrlByLabel(updatedFileTypes, "scenejson");
 
               fetch(sceneJSON)
                 .then((response) => response.json())
@@ -737,8 +708,8 @@
 
       console.log("makeavatar");
       var avatarLoader = new FBXLoader();
-      let avatarFBX = getUrlByLabel(updatedFileTypes, 'avatarFBX');
-      let avatarJSON = getUrlByLabel(updatedFileTypes, 'avatarJSON');
+      let avatarFBX = getUrlByLabel(updatedFileTypes, "avatarfbx");
+      let avatarJSON = getUrlByLabel(updatedFileTypes, "avatarjson");
 
       avatarLoader.load(
         avatarFBX,
@@ -877,31 +848,10 @@
       }
     });
 
-<<<<<<< HEAD
     function getUrlByLabel(fileTypes, label) {
       const fileType = fileTypes.find((fileType) => fileType.label === label);
       return fileType ? fileType.url : null;
     }
-=======
-    // code by woog2roid.
-    let globalFileHandles = [];
-    document.getElementById("dirPicker").addEventListener("click", async () => {
-      var inputElement = document.getElementById('fileInput');
-        var files = inputElement.files;
-        console.log("hello");
-        if (files.length > 0) {
-            const file = files[0];
-            console.log(file.name);
-
-            const test = await getFileByFilePath("/" + file.name);
-            console.log(test);
-
-            displayImage(test);
-        } else {
-            console.error('No file selected.');
-        }
-    });
->>>>>>> df1593b920a4d557dde34684ae0c4b66cd6e7caf
 
     // code by woog2roid
     async function displayImage(file) {
@@ -918,6 +868,38 @@
       // 이미지를 표시할 DOM 요소에 추가
       const displayArea = document.getElementById("fileDisplayArea");
       displayArea.appendChild(imgElement);
+    }
+
+    async function processFilename(filename) {
+      const nameParts = filename.split("/");
+      const basename = nameParts[nameParts.length - 1];
+
+      const baseName = basename.split(".").slice(0, -1).join(".");
+      const extension = basename.split(".").pop();
+
+      if (baseName.startsWith("avatar_")) {
+        if (extension === "fbx") {
+          return "avatarfbx";
+        } else if (extension === "json") {
+          return "avatarjson";
+        }
+      } else if (baseName.startsWith("scene_")) {
+        if (baseName.endsWith("mlp")) {
+          return "scenemlpjson";
+        } else if (extension === "glb") {
+          return "sceneglb";
+        } else if (extension === "json") {
+          return "scenejson";
+        } else if (baseName.includes("shape")) {
+          const match = baseName.match(/scene_1_shape(\d+)\.pngfeat(\d+)/);
+          if (match) {
+            const shapeIndex = match[1];
+            const textureIndex = match[2];
+            return `texture${shapeIndex}_${textureIndex}`;
+          }
+        }
+      }
+      return "unknown";
     }
 
     async function getFileByFilePath(filePath) {
@@ -971,67 +953,6 @@
         throw new Error(`File not found: ${filePath}`);
       }
       return await fileHandleToURL(fileHandle);
-    }
-
-    async function loadModelFilesAndConvertToURLs(basePath) {
-      const fileURLs = {};
-      const mlpHandle = await getFileByFilePath(
-        `${basePath}/scene/scene_1_mlp.json`
-      );
-      if (!mlpHandle) {
-        throw new Error("scene_1_mlp.json file not found.");
-      }
-      const mlpURL = URL.createObjectURL(mlpHandle);
-      const mlpData = await fetch(mlpURL).then((response) => response.json());
-      URL.revokeObjectURL(mlpURL);
-      console.log(mlpData);
-
-      const fileTypes = [
-        { path: `${basePath}/avatar/avatar_1.fbx`, label: "avatarFBX" },
-        { path: `${basePath}/avatar/avatar_1.json`, label: "avatarJSON" },
-        { path: `${basePath}/scene/scene_1.glb`, label: "sceneGLB" },
-        { path: `${basePath}/scene/scene_1.json`, label: "sceneJSON" },
-        { path: `${basePath}/scene/scene_1_mlp.json`, label: "sceneMLPJSON" },
-      ];
-
-      const objNum = mlpData["obj_num"];
-      for (let i = 0; i < objNum; i++) {
-        for (let j = 0; j < 2; j++) {
-          fileTypes.push({
-            path: `${basePath}/scene/scene_1_shape${i}.pngfeat${j}.png`,
-            label: `texture${i}_${j}`,
-          });
-        }
-      }
-
-      for (const fileType of fileTypes) {
-        try {
-          const fileHandle = await getFileByFilePath(fileType.path);
-          const url = URL.createObjectURL(fileHandle);
-          globalFileURLs[fileType.label] = url;
-          fileURLs[fileType.label] = url;
-        } catch (error) {
-          console.error(`Error loading ${fileType.label}:`, error);
-        }
-      }
-
-      return fileURLs;
-    }
-
-    async function addURLsToFileTypes(fileTypes) {
-      const updates = fileTypes.map(async (fileType) => {
-        try {
-          const fileBlob = await getFileByFilePath(fileType.path);
-          const fileURL = URL.createObjectURL(fileBlob);
-          fileType.url = fileURL;
-        } catch (error) {
-          console.error(`Error getting file for ${fileType.label}:`, error);
-          fileType.url = null;
-        }
-      });
-
-      await Promise.all(updates);
-      return fileTypes;
     }
 
     async function saveAvatarData() {
