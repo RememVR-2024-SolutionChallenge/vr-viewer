@@ -161,6 +161,7 @@
       <button id="backButton" onclick="window.history.back()">Back</button>
       <button id="saveButton">Save</button>
       <button id="dirPicker">Import VR Resource Folder</button>
+      <div id="fileDisplayArea"></div>
     </div>
     <div id="controlSlider">
       <label for="xPosition">X Position:</label>
@@ -807,19 +808,39 @@
 
         // example by woog2roid.
         // Good Case.
-        // const file = await fileHandles[0].handle.getFile();
+        const file = await fileHandles[1].handle.getFile();
         // Error Case.
         // const file = await fileHandles[0].getFile();
+        console.log(file.name);
+
+        const test = await getFileByFilePath("/"+file.name);
+        console.log(test);
 
         // example by woog2roid.
         // Good Case: filePath parameter MUST same with entry's filePath.
         // console.log(await getFileByFilePath("/1/0202.jpg"));
+        displayImage(test)
         // Error Case.
         // console.log(await getFileByFilePath("./1/0202.jpg"));
       } catch (error) {
         console.error(error);
       }
     });
+
+    async function displayImage(file) {
+            // 파일의 URL 생성
+            const fileURL = URL.createObjectURL(file);
+
+            // 이미지 엘리먼트 생성
+            const imgElement = document.createElement('img');
+            imgElement.src = fileURL;
+            imgElement.alt = file.name;
+
+            // 이미지를 표시할 DOM 요소에 추가
+            const displayArea = document.getElementById('fileDisplayArea');
+            displayArea.appendChild(imgElement);
+        }
+
 
     async function getFileByFilePath(filePath) {
       const fileHandleEntry = globalFileHandles.find(
