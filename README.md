@@ -2,16 +2,13 @@
 ```
 vr-viewer
 ├─ data
-│  ├─ avatar
-│  │  └─ avatar_1
-│  │     ├─ avatar_1.fbx
-│  │     └─ avatar_1.json
 │  ├─ model_1
 │  │  ├─ avatar
 │  │  │  ├─ avatar_1.fbx
 │  │  │  └─ avatar_1.json
 │  │  └─ scene
 │  │     ├─ scene_1.glb
+│  │     ├─ scene_1_mlp.json
 │  │     ├─ scene_1.json
 │  │     ├─ scene_1_shape0.pngfeat0.png
 │  │     ├─ scene_1_shape0.pngfeat1.png
@@ -21,9 +18,14 @@ vr-viewer
 │  │     ├─ scene_1_shape2.pngfeat1.png
 │  │     ├─ scene_1_shape3.pngfeat0.png
 │  │     └─ scene_1_shape3.pngfeat1.png
+│  ├─ avatar
+│  │  └─ avatar_1
+│  │     ├─ avatar_1.fbx
+│  │     └─ avatar_1.json
 │  └─ scene
 │     └─ scene_1
 │        ├─ scene_1.glb
+│        ├─ scene_1_mlp.json
 │        ├─ scene_1.json
 │        ├─ scene_1_shape0.pngfeat0.png
 │        ├─ scene_1_shape0.pngfeat1.png
