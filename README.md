@@ -1,35 +1,43 @@
+## 🔎 Overview
+This repository implements VR viewer using for real-time nerf rendering in mobile devices. Powered by WebXR, Three.js and MobileNeRF technologies.
 
-## 🚀 Run VR-Viewer
+## 🛠️ Architecture
+TODO: insert architecture image from drawio
 
-TODO
+## 🤖 Features
 
-#### [for 🧑‍💻Developer] TODO
-1. Enter https://github.com/RememVR-2024-SolutionChallenge/RememVR-client/releases
-2. Click the latest release
-3. Download app-release.apk
-4. Launch this app on Android devices.
+Our pipeline supports viewing the generated 3D models in two modes:
 
-#### [for 🧑‍🎨Non-Developer] TODO
-TODO
+VR Mode: When a VR device is connected, users can immerse themselves in the virtual environment to view the 3D models.
 
-#### ⭐ Prerequisites
+Web Mode: In the absence of a VR connection, the models are accessible via a web-based viewer, ensuring broad accessibility.
+This comprehensive pipeline marries the power of AI with the immersive capabilities of VR, offering a unique and engaging user experience.
 
-Test Device: Oculus Quest 2
-
-Before you start, make sure you connect your own VR or AR devices.
-
-TODO
-
-## 📱 Features
 |👐 Care giver                  |   👐 Care recipient             |
 |:-------------------------:|:-------------------------:|
-<img src="https://github.com/RememVR-2024-SolutionChallenge/RememVR-client/assets/101000358/b1dccbb2-b54c-4278-b235-9639994358e9" width='97%'>|<img src="https://github.com/RememVR-2024-SolutionChallenge/RememVR-client/assets/101000358/a94a6c34-7613-4596-9503-4e9d10542860" width='95%'>|
+<img src="">|<img src="">|
+| A viewer page with editing capabilities is provided. Due to the complexity of automatically generating a 3D scene that appropriately displays the scene (background) and avatar together, based on the input data’s type, size, and various parameters, simple editing features are added to delegate this task to caregivers. | A viewer page without editing capabilities is shown. A viewer page without editing capabilities is shown. A viewer page without editing capabilities is shown. |
 
 
-## 📋 Architecture
-<img src="https://github.com/RememberMe-2024-SolutionChallenge/RememVR-client/assets/101000358/5fc52680-0759-47b9-9a0a-b46761ea27cc" width='50%'>
 
-## 👩‍💻 Tool & Packages
-- Design : [Figma](https://www.figma.com/)
-- Http networking : [Dio](https://pub.dev/packages/dio)
-- State management : [Provider](https://pub.dev/packages/provider)
+## 🙍‍♂️	User Guide with VR Devices
+
+Experience our VR viewer if you have a VR setup. Before launching the app, ensure your VR and mobile devices are connected.
+
+### 😎 For Quest 2 Users:
+
+1. **Connecting your Quest 2**: Link your Quest2 with mobile device. Follow the instructions in-VR and in the Meta Quest mobile app to complete the setup process. Refer to the [official guidance](https://www.meta.com/ko-kr/help/quest/articles/getting-started/getting-started-with-quest-2/install-meta-quest-mobile-app/). Just ensuring a mirroring connection suffices for our service.
+
+   ❗Note: Your VR device and mobile device **MUST BE** connected with same network.
+
+2. **Accessing the VR Viewer**: Once connected, the `Start VR` button on our web-based VR viewer becomes automatically accessible. Click it, and enjoy your VR journey!
+
+   - Access several pre-trained example models [here](https://rememvr-2024-solutionchallenge.github.io/vr-viewer/demo).
+   - This VR viewer connects with Flutter APK. If you have your own trained scene and avatar, you can see your own model with this viewer. [Learn how to create your own model here](https://github.com/RememVR-2024-SolutionChallenge/ai-server).
+   - We've tested with Oculus Quest 2 and Galaxy S22. We will support more VR devices soon.
+
+
+## 🔖 References
+* MobileNeRF: Exploiting the Polygon Rasterization Pipeline for Efficient Neural Field Rendering on Mobile Architectures (Apache-2.0 license)
+* MobileNeRF + WebXR
+* Draco (Apache-2.0 license)
