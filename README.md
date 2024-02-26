@@ -1,5 +1,5 @@
 ## 🔎 Overview
-This repository implements `**VR viewer**` designed for real-time NeRF rendering in mobile devices. Powered by **WebXR**, **Three.js** and **MobileNeRF**, we provide a lightweight **web-view integrated with Flutter app**. It eliminates the need for high-end hardware, making it possible to run 3D models smoothly on standard mobile devices - Achieves 60 fps on the Galaxy S22.
+This repository implements **`VR viewer`** designed for real-time NeRF rendering in mobile devices. Powered by **WebXR**, **Three.js** and **MobileNeRF**, we provide a lightweight **web-view integrated with Flutter app**. It eliminates the need for high-end hardware, making it possible to run 3D models smoothly on standard mobile devices - Achieves 60 fps on the Galaxy S22.
 
 ## 🤖 Features
 
