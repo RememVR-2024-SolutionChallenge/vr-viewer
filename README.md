@@ -1,5 +1,5 @@
 ## 🔎 Overview
-This repository implements `VR viewer` designed for real-time NeRF rendering in mobile devices. Powered by **WebXR**, **Three.js** and **MobileNeRF**, we provide a lightweight **web-view integrated with Flutter app**. It eliminates the need for high-end hardware, making it possible to run 3D models smoothly on standard mobile devices - Achieves 60 fps on the Galaxy S22.
+This repository implements `**VR viewer**` designed for real-time NeRF rendering in mobile devices. Powered by **WebXR**, **Three.js** and **MobileNeRF**, we provide a lightweight **web-view integrated with Flutter app**. It eliminates the need for high-end hardware, making it possible to run 3D models smoothly on standard mobile devices - Achieves 60 fps on the Galaxy S22.
 
 ## 🤖 Features
 
@@ -11,7 +11,6 @@ We support viewing the generated 3D models in two modes: **`VR Mode`** and **`We
 | <div align="left">✔️ Dynamic position & scale editing and saving capabilities<br>✔️ Simple interactions through VR devices<br>✔️ Editing support on mobile devices</div> | <div align="left">✔️ Static scene viewer with pre-saved settings<br>✔️ Viewing support for both VR and mobile platforms<br>✔️ Support for forward-facing, unbounded, and indoor(⚠️) scene</div> |
 
 We plan to support more features and interactions soon!🥳
-
 
 
 ## 🙍‍♂️	User Guide with VR Devices
@@ -34,10 +33,6 @@ Experience our VR viewer if you have a VR setup. Before launching the app, ensur
 - [ ]  Add Avatar interactions using [mixamo](https://www.mixamo.com/).
 - [ ]  Add trackball interactions for manipulating scene and avatar using ray casting.
 - [ ]  Support for more VR and mobile devices.
-
-
-
-
 
 
 
