@@ -1,22 +1,16 @@
 ## 🔎 Overview
-This repository implements VR viewer using for real-time nerf rendering in mobile devices. Powered by WebXR, Three.js and MobileNeRF technologies.
-
-## 🛠️ Architecture
-TODO: insert architecture image from drawio
+This repository implements `VR viewer` designed for real-time NeRF rendering in mobile devices. Powered by **WebXR**, **Three.js** and **MobileNeRF**, we provide a lightweight **web-view integrated with Flutter app**. It eliminates the need for high-end hardware, making it possible to run 3D models smoothly on standard mobile devices - Achieves 60 fps on the Galaxy S22.
 
 ## 🤖 Features
 
-Our pipeline supports viewing the generated 3D models in two modes:
-
-VR Mode: When a VR device is connected, users can immerse themselves in the virtual environment to view the 3D models.
-
-Web Mode: In the absence of a VR connection, the models are accessible via a web-based viewer, ensuring broad accessibility.
-This comprehensive pipeline marries the power of AI with the immersive capabilities of VR, offering a unique and engaging user experience.
+We support viewing the generated 3D models in two modes: **`VR Mode`** and **`Web Mode`**.
 
 |👐 Care giver                  |   👐 Care recipient             |
-|:-------------------------:|:-------------------------:|
-<img src="">|<img src="">|
-| A viewer page with editing capabilities is provided. Due to the complexity of automatically generating a 3D scene that appropriately displays the scene (background) and avatar together, based on the input data’s type, size, and various parameters, simple editing features are added to delegate this task to caregivers. | A viewer page without editing capabilities is shown. A viewer page without editing capabilities is shown. A viewer page without editing capabilities is shown. |
+|:-------------------------|:-------------------------|
+|![Demo Preview](./assets/caregiver-demo.gif)|![Dataset Preview](./assets/carerecipient-demo.gif)|
+| <div align="left">✔️ Dynamic position & scale editing and saving capabilities<br>✔️ Simple interactions through VR devices<br>✔️ Editing support on mobile devices</div> | <div align="left">✔️ Static scene viewer with pre-saved settings<br>✔️ Viewing support for both VR and mobile platforms<br>✔️ Support for forward-facing, unbounded, and indoor(⚠️) scene</div> |
+
+We plan to support more features and interactions soon!🥳
 
 
 
@@ -36,8 +30,20 @@ Experience our VR viewer if you have a VR setup. Before launching the app, ensur
    - This VR viewer connects with Flutter APK. If you have your own trained scene and avatar, you can see your own model with this viewer. [Learn how to create your own model here](https://github.com/RememVR-2024-SolutionChallenge/ai-server).
    - We've tested with Oculus Quest 2 and Galaxy S22. We will support more VR devices soon.
 
+## ✅ TODO
+- [ ]  Add Avatar interactions using [mixamo](https://www.mixamo.com/).
+- [ ]  Add trackball interactions for manipulating scene and avatar using ray casting.
+- [ ]  Support for more VR and mobile devices.
+
+
+
+
+
+
+
 
 ## 🔖 References
-* MobileNeRF: Exploiting the Polygon Rasterization Pipeline for Efficient Neural Field Rendering on Mobile Architectures (Apache-2.0 license)
-* MobileNeRF + WebXR
-* Draco (Apache-2.0 license)
+- MobileNeRF + WebXR [[Link]](https://github.com/mrxz/mobilenerf-viewer-webxr) [Apache 2.0]
+- Google Draco [[Link]](https://github.com/google/draco) [Apache 2.0]
+- three.js example [[Link]](https://github.com/mrdoob/three.js) [MIT]
+- WebXR Device API [[Link]](https://codelabs.developers.google.com/ar-with-webxr?hl=ko#0) [Google Codelab]
