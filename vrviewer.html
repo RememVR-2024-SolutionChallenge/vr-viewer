@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>3D Gaussian Splat Demo - Interactive Transformation</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./lib/three.module.js",
+          "@mkkellogg/gaussian-splats-3d": "./lib/gaussian-splats-3d.module.js",
+          "FBXLoader": "./js/FBXLoader.js"
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #000000;
+        color: white;
+        height: 100vh;
+        margin: 0px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      /* -------------------------- Modules And Utilties -------------------------- */
+      import * as THREE from "three";
+      import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
+      import { FBXLoader } from "FBXLoader";
+
+      const fetchFile = async (filePath) =>
+        await new Promise((resolve, reject) => {
+          fileReader.onload = () => {
+            resolve(JSON.parse(fileReader.result));
+          };
+          fileReader.onerror = () => {
+            reject(fileReader.error);
+          };
+          fileReader.readAsText(filePath);
+        });
+
+      /* ----------------------------- Fetch Metadata ----------------------------- */
+      // Get the video ID from the query string
+      const urlParams = new URLSearchParams(window.location.search);
+      const videoId = urlParams.get("video-id");
+
+      // Get the metadatas from local storage by the videoId
+      const metaDataFilePath = `/data/user/0/com.example.remember_me/app_flutter/${videoId}/meta-data.json`;
+      const fileReader = new FileReader();
+      const metadata = fetchFile(metaDataFilePath);
+
+      /* ----------------------------- Fetch Resources ---------------------------- */
+      const sceneId = metadata.scene.id;
+      const avatarsId = metadata.avatars.map((avatar) => avatar.id);
+
+      const scenePosition = fetchFile(
+        `/data/user/0/com.example.remember_me/app_flutter/${videoId}/${sceneId}.json`
+      );
+      const avatarsPosition = avatarsId.map((avatarId) =>
+        fetchFile(
+          `/data/user/0/com.example.remember_me/app_flutter/${videoId}/${avatarId}.json`
+        )
+      );
+
+      const scenePath = `/data/user/0/com.example.remember_me/app_flutter/${sceneId}/scene.ply`;
+      const avatarsPath = avatarsId.map(
+        (avatarId) =>
+          `/data/user/0/com.example.remember_me/app_flutter/${avatarId}/model.fbx`
+      );
+
+      /* ---------------------------- Compose The Scene --------------------------- */
+      const viewer = new GaussianSplats3D.Viewer({
+        cameraUp: [-0.16412, 0.00561, 0.98642],
+        initialCameraPosition: [-1.00417, 0.06068, 0.07115],
+        initialCameraLookAt: [0.66885, 0.03159, -0.20574],
+        webXRMode: GaussianSplats3D.WebXRMode.VR,
+      });
+
+      const threeScene = new THREE.Scene();
+      const loader = new FBXLoader();
+      let fbxObject;
+      let mixer;
+      const clock = new THREE.Clock();
+
+      // Set initial rotation
+      // const initialQuaternion = new THREE.Quaternion(0.51, -0.45, -0.52, 0.52);
+
+      for (let i = 0; i < avatarsId.length; i++) {
+        loader.load(
+          avatarsPath[i],
+          (object) => {
+            object.position.set(
+              avatarsPosition[i].position.x,
+              avatarsPosition[i].position.y,
+              avatarsPosition[i].position.z
+            );
+            object.scale.set(
+              avatarsPosition[i].scale.x,
+              avatarsPosition[i].scale.y,
+              avatarsPosition[i].scale.z
+            );
+            object.quaternion.copy(
+              new THREE.Quaternion(
+                avatarsPosition[i].roation.x,
+                avatarsPosition[i].roation.y,
+                avatarsPosition[i].roation.z,
+                avatarsPosition[i].roation.w
+              )
+            );
+            threeScene.add(object);
+            fbxObject = object;
+            mixer = new THREE.AnimationMixer(object);
+            viewer.threeScene = threeScene;
+            console.log("FBX Model loaded and added to the scene.");
+          },
+          undefined,
+          (error) => {
+            console.error("Failed to load model:", error);
+          }
+        );
+      }
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      threeScene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(0, 1, 0);
+      threeScene.add(directionalLight);
+
+      viewer
+        .addSplatScene(scenePath, {
+          streamView: true,
+          position: scenePosition.position,
+          scale: scenePosition.scale,
+          rotation: scenePosition.rotation,
+        })
+        .then(() => {
+          viewer.start();
+        });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta(); // Get the delta time since last frame
+        if (mixer) mixer.update(delta); // Update the animation mixer if it's initialized
+        viewer.update(); // Update the viewer to render the changes
+      }
+      animate(); // Start the animation loop
+    </script>
+  </body>
+</html>
