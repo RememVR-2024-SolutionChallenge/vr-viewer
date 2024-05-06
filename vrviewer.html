@@ -77,15 +77,15 @@
 
       // Get the metadatas from local storage by the videoId
       const metaDataFilePath = `${videoId}/meta-data.json`;
-      const metadata = fetchFile(metaDataFilePath);
+      const metadata = await fetchFile(metaDataFilePath);
 
       /* ----------------------------- Fetch Resources ---------------------------- */
       const sceneId = metadata.scene.id;
       const avatarsId = metadata.avatars.map((avatar) => avatar.id);
 
-      const scenePosition = fetchFile(`${videoId}/${sceneId}.json`);
-      const avatarsPosition = avatarsId.map((avatarId) =>
-        fetchFile(`${videoId}/${avatarId}.json`)
+      const scenePosition = await fetchFile(`${videoId}/${sceneId}.json`);
+      const avatarsPosition = avatarsId.map(
+        async (avatarId) => await fetchFile(`${videoId}/${avatarId}.json`)
       );
 
       const scenePath = `${sceneId}/scene.ply`;
