@@ -42,13 +42,18 @@
         }
       }
 
+      async function onFileReceived(file) {
+        const content = decodeURIComponent(file);
+        document.getElementById("fileContent").textContent = content;
+      }
+
       /* ----------------------------- Fetch Metadata ----------------------------- */
       // Get the video ID from the query string
       const urlParams = new URLSearchParams(window.location.search);
       const videoId = urlParams.get("video-id");
 
       // Get the metadatas from local storage by the videoId
-      const metaDataFilePath = `/data/user/0/com.example.remember_me/app_flutter/${videoId}/meta-data.json`;
+      const metaDataFilePath = `${videoId}/meta-data.json`;
       const fileReader = new FileReader();
       const metadata = fetchFile(metaDataFilePath);
 
@@ -56,20 +61,13 @@
       const sceneId = metadata.scene.id;
       const avatarsId = metadata.avatars.map((avatar) => avatar.id);
 
-      const scenePosition = fetchFile(
-        `/data/user/0/com.example.remember_me/app_flutter/${videoId}/${sceneId}.json`
-      );
+      const scenePosition = fetchFile(`${videoId}/${sceneId}.json`);
       const avatarsPosition = avatarsId.map((avatarId) =>
-        fetchFile(
-          `/data/user/0/com.example.remember_me/app_flutter/${videoId}/${avatarId}.json`
-        )
+        fetchFile(`${videoId}/${avatarId}.json`)
       );
 
-      const scenePath = `/data/user/0/com.example.remember_me/app_flutter/${sceneId}/scene.ply`;
-      const avatarsPath = avatarsId.map(
-        (avatarId) =>
-          `/data/user/0/com.example.remember_me/app_flutter/${avatarId}/model.fbx`
-      );
+      const scenePath = `${sceneId}/scene.ply`;
+      const avatarsPath = avatarsId.map((avatarId) => `${avatarId}/model.fbx`);
 
       /* ---------------------------- Compose The Scene --------------------------- */
       const viewer = new GaussianSplats3D.Viewer({
