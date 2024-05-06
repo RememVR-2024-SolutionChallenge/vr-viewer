@@ -55,19 +55,9 @@
         });
       }
 
-      async function onFileReceived(file) {
-        const response = await fetch(file);
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-
-        let content = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          content += decoder.decode(value, { stream: true });
-        }
-
-        return content;
+      function onFileReceived(file) {
+        // return decodeURIComponent(file);
+        return file;
       }
 
       /* ----------------------------- Fetch Metadata ----------------------------- */
