@@ -43,6 +43,7 @@
               const file = event.data;
               try {
                 const content = await onFileReceived(file);
+                alert(content);
                 resolve(content);
               } catch (error) {
                 reject(error);
