@@ -34,16 +34,9 @@
       import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
       import { FBXLoader } from "FBXLoader";
 
-      const fetchFile = async (filePath) =>
-        await new Promise((resolve, reject) => {
-          fileReader.onload = () => {
-            resolve(JSON.parse(fileReader.result));
-          };
-          fileReader.onerror = () => {
-            reject(fileReader.error);
-          };
-          fileReader.readAsText(filePath);
-        });
+      const fetchFile = async (filePath) => {
+        FileRequest.postMessage(filePath);
+      };
 
       /* ----------------------------- Fetch Metadata ----------------------------- */
       // Get the video ID from the query string
