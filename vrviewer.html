@@ -35,16 +35,39 @@
       import { FBXLoader } from "FBXLoader";
 
       async function fetchFile(filePath) {
-        if (typeof FileRequest !== "undefined") {
-          FileRequest.postMessage(filePath);
-        } else {
-          console.error('JavaScript channel "FileRequest" is not defined.');
-        }
+        return new Promise((resolve, reject) => {
+          if (typeof FileRequest !== "undefined") {
+            FileRequest.postMessage(filePath);
+            FileRequest.onmessage = async function (event) {
+              const file = event.data;
+              try {
+                const content = await onFileReceived(file);
+                resolve(content);
+              } catch (error) {
+                reject(error);
+              }
+            };
+          } else {
+            reject(
+              new Error('JavaScript channel "FileRequest" is not defined.')
+            );
+          }
+        });
       }
 
       async function onFileReceived(file) {
-        const content = decodeURIComponent(file);
-        document.getElementById("fileContent").textContent = content;
+        const response = await fetch(file);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        let content = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          content += decoder.decode(value, { stream: true });
+        }
+
+        return content;
       }
 
       /* ----------------------------- Fetch Metadata ----------------------------- */
@@ -54,7 +77,6 @@
 
       // Get the metadatas from local storage by the videoId
       const metaDataFilePath = `${videoId}/meta-data.json`;
-      const fileReader = new FileReader();
       const metadata = fetchFile(metaDataFilePath);
 
       /* ----------------------------- Fetch Resources ---------------------------- */
