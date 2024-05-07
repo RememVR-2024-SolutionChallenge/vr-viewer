@@ -57,12 +57,12 @@
         });
       }
 
-      // returning in string type
-      function onFileReceived(file) {
-        alert(file);
-        return file;
+      function onFileReceived(encodedData) {
+        const base64Data = decodeURIComponent(encodedData);
+        const fileContent = atob(base64Data);
+        return fileContent
       }
-
+      
       /* ----------------------------- Fetch Metadata ----------------------------- */
       // Get the video ID from the query string
       const urlParams = new URLSearchParams(window.location.search);
