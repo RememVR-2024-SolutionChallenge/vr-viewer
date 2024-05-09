@@ -43,11 +43,11 @@
       };
 
       /* -------------------------- Modules And Utilties -------------------------- */
-      let metadata = null;
-      let scenePosition = null;
-      let avatarsPosition = [];
-      let sceneUrl = null;
-      let avatarsUrl = [];
+      var metadata = null;
+      var scenePosition = null;
+      var avatarsPosition = [];
+      var sceneUrl = null;
+      var avatarsUrl = [];
 
       async function onFileReceived(encodedData, type) {
         const getFile = (encodedData, returnBlob) => {
@@ -91,11 +91,9 @@
       async function main() {
         async function requestFile(filePath, type) {
           if (typeof FileRequest !== "undefined") {
-            await FileRequest.postMessage(filePath, type);
+            await FileRequest.postMessage({ filePath, type });
           } else {
-            reject(
-              new Error('JavaScript channel "FileRequest" is not defined.')
-            );
+            throw new Error("FileRequest is not defined");
           }
         }
         /* ----------------------------- Fetch Metadata ----------------------------- */
