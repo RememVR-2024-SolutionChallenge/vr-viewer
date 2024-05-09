@@ -34,13 +34,45 @@
       import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
       import { FBXLoader } from "FBXLoader";
 
-      function receiveData(data) {
-        // 데이터를 사용한 로직 구현
-        alert("Received data from Flutter:", data);
-      }
+      /* ------------------------------ Needed Consts ----------------------------- */
+      let metadata = null;
+      let scenePosition = null;
+      let avatarsPosition = [];
+      let sceneUrl = null;
+      let avatarsUrl = [];
 
       /* -------------------------- Modules And Utilties -------------------------- */
-      function onFileReceived(encodedData, returnBlob) {
+      async function onFileReceived(encodedData, type) {
+        switch (type) {
+          case "metadata":
+            metadata = JSON.parse(getFile(encodedData, false));
+            break;
+          case "scenePosition":
+            scenePosition = JSON.parse(getFile(encodedData, false));
+            break;
+          case "avatarPosition":
+            avatarsPosition.push(JSON.parse(getFile(encodedData, false)));
+            break;
+          case "scene":
+            sceneUrl = URL.createObjectURL(getFile(encodedData, true));
+            break;
+          case "avatar":
+            avatarsUrl.push(URL.createObjectURL(getFile(encodedData, true)));
+            break;
+          default:
+            break;
+        }
+      }
+
+      async function requestFile(filePath, type) {
+        if (typeof FileRequest !== "undefined") {
+          await FileRequest.postMessage(filePath, type);
+        } else {
+          reject(new Error('JavaScript channel "FileRequest" is not defined.'));
+        }
+      }
+
+      function getFile(encodedData, returnBlob) {
         const base64Data = decodeURIComponent(encodedData);
         const binaryData = atob(base64Data);
 
@@ -57,14 +89,6 @@
         return blob;
       }
 
-      async function fetchFile(filePath) {
-        if (typeof FileRequest !== "undefined") {
-          FileRequest.postMessage(filePath);
-        } else {
-          reject(new Error('JavaScript channel "FileRequest" is not defined.'));
-        }
-      }
-
       async function main() {
         /* ----------------------------- Fetch Metadata ----------------------------- */
         // Get the video ID from the query string
@@ -73,34 +97,24 @@
 
         // Get the metadatas from local storage by the videoId
         const metaDataFilePath = `${videoId}/meta-data.json`;
-        const metadata = JSON.parse(
-          await (
-            await fetchFile(metaDataFilePath, false)
-          ).text
-        );
+        await requestFile(metaDataFilePath, "metadata");
 
         /* ----------------------------- Fetch Resources ---------------------------- */
         const sceneId = metadata.scene.id;
         const avatarsId = metadata.avatars.map((avatar) => avatar.id);
-
-        const scenePosition = JSON.parse(
-          await fetchFile(`${videoId}/${sceneId}.json`, false)
-        );
-        const avatarsPosition = avatarsId.map(async (avatarId) =>
-          JSON.parse(await fetchFile(`${videoId}/${avatarId}.json`, false))
-        );
+        await requestFile(`${videoId}/${sceneId}.json`, "scenePosition");
+        for (const avatarId of avatarsId) {
+          await requestFile(`${avatarId}/model.fbx`, "avatarPosition");
+        }
 
         const scenePath = `${sceneId}/scene.ply`;
         const avatarsPath = avatarsId.map(
           (avatarId) => `${avatarId}/model.fbx`
         );
-
-        const sceneUrls = URL.createObjectURL(await fetchFile(scenePath, true));
-        const avatarsUrls = await Promise.all(
-          avatarsPath.map(async (avatarPath) =>
-            URL.createObjectURL(await fetchFile(avatarPath, true))
-          )
-        );
+        await requestFile(scenePath, "scene");
+        for (const avatarPath of avatarsPath) {
+          await requestFile(avatarPath, "avatar");
+        }
 
         /* ---------------------------- Compose The Scene --------------------------- */
         const viewer = new GaussianSplats3D.Viewer({
