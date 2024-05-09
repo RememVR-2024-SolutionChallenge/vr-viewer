@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
     <title>3D Gaussian Splat Demo - Interactive Transformation</title>
     <script type="importmap">
       {
@@ -36,7 +36,7 @@
       import { FBXLoader } from "FBXLoader";
 
       // returning in string type
-      async function fetchFile(filePath) {
+      function fetchFile(filePath) {
         return new Promise((resolve, reject) => {
           if (typeof FileRequest !== "undefined") {
             FileRequest.postMessage(filePath);
@@ -60,10 +60,18 @@
 
       function onFileReceived(encodedData) {
         const base64Data = decodeURIComponent(encodedData);
-        const fileContent = atob(base64Data);
-        return fileContent
+        const binaryData = atob(base64Data);
+        const length = binaryData.length;
+        const bytes = new Uint8Array(length);
+
+        for (let i = 0; i < length; i++) {
+          bytes[i] = binaryData.charCodeAt(i);
+        }
+
+        const blob = new Blob([bytes], { type: "application/octet-stream" });
+        return blob;
       }
-      
+
       /* ----------------------------- Fetch Metadata ----------------------------- */
       // Get the video ID from the query string
       const urlParams = new URLSearchParams(window.location.search);
@@ -72,6 +80,7 @@
       // Get the metadatas from local storage by the videoId
       const metaDataFilePath = `${videoId}/meta-data.json`;
       const metadata = JSON.parse(await fetchFile(metaDataFilePath));
+
       /* ----------------------------- Fetch Resources ---------------------------- */
       const sceneId = metadata.scene.id;
       const avatarsId = metadata.avatars.map((avatar) => avatar.id);
