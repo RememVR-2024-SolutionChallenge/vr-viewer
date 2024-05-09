@@ -30,166 +30,172 @@
   </head>
   <body>
     <script type="module">
-      /* -------------------------- Modules And Utilties -------------------------- */
       import * as THREE from "three";
       import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
       import { FBXLoader } from "FBXLoader";
 
-      function fetchFile(filePath, returnBlob = true) {
-        return new Promise((resolve, reject) => {
-          if (typeof FileRequest !== "undefined") {
-            FileRequest.postMessage(filePath);
-            FileRequest.onmessage = async function (event) {
-              const file = event.data;
-              try {
-                if (returnBlob) {
-                  const content = onFileReceived(file);
-                  resolve(content);
-                } else {
-                  const content = onTextReceived(file);
-                  resolve(content);
+      async function main() {
+        /* -------------------------- Modules And Utilties -------------------------- */
+        async function fetchFile(filePath, returnBlob = true) {
+          return new Promise((resolve, reject) => {
+            if (typeof FileRequest !== "undefined") {
+              FileRequest.postMessage(filePath);
+              FileRequest.onmessage = async function (event) {
+                const file = event.data;
+                try {
+                  if (returnBlob) {
+                    const content = onFileReceived(file);
+                    resolve(content);
+                  } else {
+                    const content = onTextReceived(file);
+                    resolve(content);
+                  }
+                } catch (error) {
+                  reject(error);
                 }
-              } catch (error) {
-                reject(error);
-              }
-            };
-          } else {
-            reject(
-              new Error('JavaScript channel "FileRequest" is not defined.')
-            );
-          }
-        });
-      }
-
-      function onFileReceived(encodedData) {
-        const base64Data = decodeURIComponent(encodedData);
-        const binaryData = atob(base64Data);
-        const length = binaryData.length;
-        const bytes = new Uint8Array(length);
-
-        for (let i = 0; i < length; i++) {
-          bytes[i] = binaryData.charCodeAt(i);
+              };
+            } else {
+              reject(
+                new Error('JavaScript channel "FileRequest" is not defined.')
+              );
+            }
+          });
         }
 
-        const blob = new Blob([bytes], { type: "application/octet-stream" });
-        return blob;
-      }
+        function onFileReceived(encodedData) {
+          const base64Data = decodeURIComponent(encodedData);
+          const binaryData = atob(base64Data);
+          const length = binaryData.length;
+          const bytes = new Uint8Array(length);
 
-      function onTextReceived(encodedData) {
-        const base64Data = decodeURIComponent(encodedData);
-        const binaryData = atob(base64Data);
-        return binaryData;
-      }
-
-      /* ----------------------------- Fetch Metadata ----------------------------- */
-      // Get the video ID from the query string
-      const urlParams = new URLSearchParams(window.location.search);
-      const videoId = urlParams.get("video-id");
-
-      // Get the metadatas from local storage by the videoId
-      const metaDataFilePath = `${videoId}/meta-data.json`;
-      const metadata = JSON.parse(
-        await (
-          await fetchFile(metaDataFilePath, false)
-        ).text
-      );
-
-      /* ----------------------------- Fetch Resources ---------------------------- */
-      const sceneId = metadata.scene.id;
-      const avatarsId = metadata.avatars.map((avatar) => avatar.id);
-
-      const scenePosition = JSON.parse(
-        await fetchFile(`${videoId}/${sceneId}.json`, false)
-      );
-      const avatarsPosition = avatarsId.map(async (avatarId) =>
-        JSON.parse(await fetchFile(`${videoId}/${avatarId}.json`, false))
-      );
-
-      const scenePath = `${sceneId}/scene.ply`;
-      const avatarsPath = avatarsId.map((avatarId) => `${avatarId}/model.fbx`);
-
-      const sceneUrls = URL.createObjectURL(await fetchFile(scenePath, true));
-      const avatarsUrls = avatarsPath.map(async (avatarPath) =>
-        URL.createObjectURL(await fetchFile(avatarPath, true))
-      );
-
-      /* ---------------------------- Compose The Scene --------------------------- */
-      const viewer = new GaussianSplats3D.Viewer({
-        cameraUp: [-0.16412, 0.00561, 0.98642],
-        initialCameraPosition: [-1.00417, 0.06068, 0.07115],
-        initialCameraLookAt: [0.66885, 0.03159, -0.20574],
-        webXRMode: GaussianSplats3D.WebXRMode.VR,
-      });
-
-      const threeScene = new THREE.Scene();
-      const loader = new FBXLoader();
-      let fbxObject;
-      let mixer;
-      const clock = new THREE.Clock();
-
-      // Set initial rotation
-      // const initialQuaternion = new THREE.Quaternion(0.51, -0.45, -0.52, 0.52);
-
-      for (let i = 0; i < avatarsId.length; i++) {
-        loader.load(
-          avatarsPath[i],
-          (object) => {
-            object.position.set(
-              avatarsPosition[i].position.x,
-              avatarsPosition[i].position.y,
-              avatarsPosition[i].position.z
-            );
-            object.scale.set(
-              avatarsPosition[i].scale.x,
-              avatarsPosition[i].scale.y,
-              avatarsPosition[i].scale.z
-            );
-            object.quaternion.copy(
-              new THREE.Quaternion(
-                avatarsPosition[i].roation.x,
-                avatarsPosition[i].roation.y,
-                avatarsPosition[i].roation.z,
-                avatarsPosition[i].roation.w
-              )
-            );
-            threeScene.add(object);
-            fbxObject = object;
-            mixer = new THREE.AnimationMixer(object);
-            viewer.threeScene = threeScene;
-            console.log("FBX Model loaded and added to the scene.");
-          },
-          undefined,
-          (error) => {
-            console.error("Failed to load model:", error);
+          for (let i = 0; i < length; i++) {
+            bytes[i] = binaryData.charCodeAt(i);
           }
+
+          const blob = new Blob([bytes], { type: "application/octet-stream" });
+          return blob;
+        }
+
+        function onTextReceived(encodedData) {
+          const base64Data = decodeURIComponent(encodedData);
+          const binaryData = atob(base64Data);
+          return binaryData;
+        }
+
+        /* ----------------------------- Fetch Metadata ----------------------------- */
+        // Get the video ID from the query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get("video-id");
+
+        // Get the metadatas from local storage by the videoId
+        const metaDataFilePath = `${videoId}/meta-data.json`;
+        const metadata = JSON.parse(
+          await (
+            await fetchFile(metaDataFilePath, false)
+          ).text
         );
-      }
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-      threeScene.add(ambientLight);
+        /* ----------------------------- Fetch Resources ---------------------------- */
+        const sceneId = metadata.scene.id;
+        const avatarsId = metadata.avatars.map((avatar) => avatar.id);
 
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(0, 1, 0);
-      threeScene.add(directionalLight);
+        const scenePosition = JSON.parse(
+          await fetchFile(`${videoId}/${sceneId}.json`, false)
+        );
+        const avatarsPosition = avatarsId.map(async (avatarId) =>
+          JSON.parse(await fetchFile(`${videoId}/${avatarId}.json`, false))
+        );
 
-      viewer
-        .addSplatScene(scenePath, {
-          streamView: true,
-          position: scenePosition.position,
-          scale: scenePosition.scale,
-          rotation: scenePosition.rotation,
-        })
-        .then(() => {
-          viewer.start();
+        const scenePath = `${sceneId}/scene.ply`;
+        const avatarsPath = avatarsId.map(
+          (avatarId) => `${avatarId}/model.fbx`
+        );
+
+        const sceneUrls = URL.createObjectURL(await fetchFile(scenePath, true));
+        const avatarsUrls = avatarsPath.map(async (avatarPath) =>
+          URL.createObjectURL(await fetchFile(avatarPath, true))
+        );
+
+        /* ---------------------------- Compose The Scene --------------------------- */
+        const viewer = new GaussianSplats3D.Viewer({
+          cameraUp: [-0.16412, 0.00561, 0.98642],
+          initialCameraPosition: [-1.00417, 0.06068, 0.07115],
+          initialCameraLookAt: [0.66885, 0.03159, -0.20574],
+          webXRMode: GaussianSplats3D.WebXRMode.VR,
         });
 
-      function animate() {
-        requestAnimationFrame(animate);
-        const delta = clock.getDelta(); // Get the delta time since last frame
-        if (mixer) mixer.update(delta); // Update the animation mixer if it's initialized
-        viewer.update(); // Update the viewer to render the changes
+        const threeScene = new THREE.Scene();
+        const loader = new FBXLoader();
+        let fbxObject;
+        let mixer;
+        const clock = new THREE.Clock();
+
+        // Set initial rotation
+        // const initialQuaternion = new THREE.Quaternion(0.51, -0.45, -0.52, 0.52);
+
+        for (let i = 0; i < avatarsId.length; i++) {
+          await loader.load(
+            avatarsPath[i],
+            (object) => {
+              object.position.set(
+                avatarsPosition[i].position.x,
+                avatarsPosition[i].position.y,
+                avatarsPosition[i].position.z
+              );
+              object.scale.set(
+                avatarsPosition[i].scale.x,
+                avatarsPosition[i].scale.y,
+                avatarsPosition[i].scale.z
+              );
+              object.quaternion.copy(
+                new THREE.Quaternion(
+                  avatarsPosition[i].roation.x,
+                  avatarsPosition[i].roation.y,
+                  avatarsPosition[i].roation.z,
+                  avatarsPosition[i].roation.w
+                )
+              );
+              threeScene.add(object);
+              fbxObject = object;
+              mixer = new THREE.AnimationMixer(object);
+              viewer.threeScene = threeScene;
+              console.log("FBX Model loaded and added to the scene.");
+            },
+            undefined,
+            (error) => {
+              console.error("Failed to load model:", error);
+            }
+          );
+        }
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        threeScene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(0, 1, 0);
+        threeScene.add(directionalLight);
+
+        await viewer
+          .addSplatScene(scenePath, {
+            streamView: true,
+            position: scenePosition.position,
+            scale: scenePosition.scale,
+            rotation: scenePosition.rotation,
+          })
+          .then(() => {
+            viewer.start();
+          });
+
+        function animate() {
+          requestAnimationFrame(animate);
+          const delta = clock.getDelta(); // Get the delta time since last frame
+          if (mixer) mixer.update(delta); // Update the animation mixer if it's initialized
+          viewer.update(); // Update the viewer to render the changes
+        }
+        animate(); // Start the animation loop
       }
-      animate(); // Start the animation loop
+
+      main();
     </script>
   </body>
 </html>
