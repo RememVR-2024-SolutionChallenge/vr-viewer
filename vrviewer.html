@@ -112,8 +112,10 @@
         );
 
         const sceneUrls = URL.createObjectURL(await fetchFile(scenePath, true));
-        const avatarsUrls = avatarsPath.map(async (avatarPath) =>
-          URL.createObjectURL(await fetchFile(avatarPath, true))
+        const avatarsUrls = await Promise.all(
+          avatarsPath.map(async (avatarPath) =>
+            URL.createObjectURL(await fetchFile(avatarPath, true))
+          )
         );
 
         /* ---------------------------- Compose The Scene --------------------------- */
@@ -134,38 +136,32 @@
         // const initialQuaternion = new THREE.Quaternion(0.51, -0.45, -0.52, 0.52);
 
         for (let i = 0; i < avatarsId.length; i++) {
-          await loader.load(
-            avatarsPath[i],
-            (object) => {
-              object.position.set(
-                avatarsPosition[i].position.x,
-                avatarsPosition[i].position.y,
-                avatarsPosition[i].position.z
-              );
-              object.scale.set(
-                avatarsPosition[i].scale.x,
-                avatarsPosition[i].scale.y,
-                avatarsPosition[i].scale.z
-              );
-              object.quaternion.copy(
-                new THREE.Quaternion(
-                  avatarsPosition[i].roation.x,
-                  avatarsPosition[i].roation.y,
-                  avatarsPosition[i].roation.z,
-                  avatarsPosition[i].roation.w
-                )
-              );
-              threeScene.add(object);
-              fbxObject = object;
-              mixer = new THREE.AnimationMixer(object);
-              viewer.threeScene = threeScene;
-              console.log("FBX Model loaded and added to the scene.");
-            },
-            undefined,
-            (error) => {
-              console.error("Failed to load model:", error);
-            }
+          const model = await new Promise((resolve, reject) => {
+            loader.load(avatarsPath[i], resolve, undefined, reject);
+          });
+          model.position.set(
+            avatarsPosition[i].position.x,
+            avatarsPosition[i].position.y,
+            avatarsPosition[i].position.z
           );
+          model.scale.set(
+            avatarsPosition[i].scale.x,
+            avatarsPosition[i].scale.y,
+            avatarsPosition[i].scale.z
+          );
+          model.quaternion.copy(
+            new THREE.Quaternion(
+              avatarsPosition[i].roation.x,
+              avatarsPosition[i].roation.y,
+              avatarsPosition[i].roation.z,
+              avatarsPosition[i].roation.w
+            )
+          );
+          threeScene.add(model);
+          fbxObject = model;
+          mixer = new THREE.AnimationMixer(model);
+          viewer.threeScene = threeScene;
+          console.log("FBX Model loaded and added to the scene.");
         }
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
