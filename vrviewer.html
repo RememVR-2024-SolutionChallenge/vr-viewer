@@ -50,7 +50,7 @@
       var avatarsUrl = [];
 
       async function onFileReceived(encodedData, type) {
-        const getFile = (encodedData, returnBlob) => {
+        function getFile(encodedData, returnBlob) {
           const base64Data = decodeURIComponent(encodedData);
           const binaryData = atob(base64Data);
 
@@ -65,7 +65,7 @@
 
           const blob = new Blob([bytes], { type: "application/octet-stream" });
           return blob;
-        };
+        }
 
         switch (type) {
           case TYPE.metadata:
@@ -106,24 +106,26 @@
         await requestFile(metaDataFilePath, TYPE.metadata);
 
         /* ----------------------------- Fetch Resources ---------------------------- */
-        const sceneId = metadata.scene.id;
-        const avatarsId = metadata.avatars.map((avatar) => avatar.id);
-        await requestFile(`${videoId}/${sceneId}.json`, TYPE.scenePosition);
-        for (const avatarId of avatarsId) {
-          await requestFile(
-            `${videoId}/${avatarId}/${sceneId}.json`,
-            TYPE.avatarPosition
-          );
-        }
+        setTimeout(async () => {
+          const sceneId = metadata.scene.id;
+          const avatarsId = metadata.avatars.map((avatar) => avatar.id);
+          await requestFile(`${videoId}/${sceneId}.json`, TYPE.scenePosition);
+          for (const avatarId of avatarsId) {
+            await requestFile(
+              `${videoId}/${avatarId}/${sceneId}.json`,
+              TYPE.avatarPosition
+            );
+          }
 
-        const scenePath = `${sceneId}/scene.ply`;
-        const avatarsPath = avatarsId.map(
-          (avatarId) => `${avatarId}/model.fbx`
-        );
-        await requestFile(scenePath, TYPE.scene);
-        for (const avatarPath of avatarsPath) {
-          await requestFile(avatarPath, TYPE.avatar);
-        }
+          const scenePath = `${sceneId}/scene.ply`;
+          const avatarsPath = avatarsId.map(
+            (avatarId) => `${avatarId}/model.fbx`
+          );
+          await requestFile(scenePath, TYPE.scene);
+          for (const avatarPath of avatarsPath) {
+            await requestFile(avatarPath, TYPE.avatar);
+          }
+        }, 1000);
 
         /* ---------------------------- Compose The Scene --------------------------- */
         const viewer = new GaussianSplats3D.Viewer({
