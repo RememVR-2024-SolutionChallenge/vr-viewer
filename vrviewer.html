@@ -34,29 +34,53 @@
       import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
       import { FBXLoader } from "FBXLoader";
 
-      /* ------------------------------ Needed Consts ----------------------------- */
+      const TYPE = {
+        metadata: "metadata",
+        scenePosition: "scenePosition",
+        avatarPosition: "avatarPosition",
+        scene: "scene",
+        avatar: "avatar",
+      };
+
+      /* -------------------------- Modules And Utilties -------------------------- */
       let metadata = null;
       let scenePosition = null;
       let avatarsPosition = [];
       let sceneUrl = null;
       let avatarsUrl = [];
 
-      /* -------------------------- Modules And Utilties -------------------------- */
       async function onFileReceived(encodedData, type) {
+        const getFile = (encodedData, returnBlob) => {
+          const base64Data = decodeURIComponent(encodedData);
+          const binaryData = atob(base64Data);
+
+          if (returnBlob === false) return binaryData;
+
+          const length = binaryData.length;
+          const bytes = new Uint8Array(length);
+
+          for (let i = 0; i < length; i++) {
+            bytes[i] = binaryData.charCodeAt(i);
+          }
+
+          const blob = new Blob([bytes], { type: "application/octet-stream" });
+          return blob;
+        };
+
         switch (type) {
-          case "metadata":
+          case TYPE.metadata:
             metadata = JSON.parse(getFile(encodedData, false));
             break;
-          case "scenePosition":
+          case TYPE.scenePosition:
             scenePosition = JSON.parse(getFile(encodedData, false));
             break;
-          case "avatarPosition":
+          case TYPE.avatarPosition:
             avatarsPosition.push(JSON.parse(getFile(encodedData, false)));
             break;
-          case "scene":
+          case TYPE.scene:
             sceneUrl = URL.createObjectURL(getFile(encodedData, true));
             break;
-          case "avatar":
+          case TYPE.avatar:
             avatarsUrl.push(URL.createObjectURL(getFile(encodedData, true)));
             break;
           default:
@@ -64,32 +88,16 @@
         }
       }
 
-      async function requestFile(filePath, type) {
-        if (typeof FileRequest !== "undefined") {
-          await FileRequest.postMessage(filePath, type);
-        } else {
-          reject(new Error('JavaScript channel "FileRequest" is not defined.'));
-        }
-      }
-
-      function getFile(encodedData, returnBlob) {
-        const base64Data = decodeURIComponent(encodedData);
-        const binaryData = atob(base64Data);
-
-        if (returnBlob === false) return binaryData;
-
-        const length = binaryData.length;
-        const bytes = new Uint8Array(length);
-
-        for (let i = 0; i < length; i++) {
-          bytes[i] = binaryData.charCodeAt(i);
-        }
-
-        const blob = new Blob([bytes], { type: "application/octet-stream" });
-        return blob;
-      }
-
       async function main() {
+        async function requestFile(filePath, type) {
+          if (typeof FileRequest !== "undefined") {
+            await FileRequest.postMessage(filePath, type);
+          } else {
+            reject(
+              new Error('JavaScript channel "FileRequest" is not defined.')
+            );
+          }
+        }
         /* ----------------------------- Fetch Metadata ----------------------------- */
         // Get the video ID from the query string
         const urlParams = new URLSearchParams(window.location.search);
@@ -97,23 +105,26 @@
 
         // Get the metadatas from local storage by the videoId
         const metaDataFilePath = `${videoId}/meta-data.json`;
-        await requestFile(metaDataFilePath, "metadata");
+        await requestFile(metaDataFilePath, TYPE.metadata);
 
         /* ----------------------------- Fetch Resources ---------------------------- */
         const sceneId = metadata.scene.id;
         const avatarsId = metadata.avatars.map((avatar) => avatar.id);
-        await requestFile(`${videoId}/${sceneId}.json`, "scenePosition");
+        await requestFile(`${videoId}/${sceneId}.json`, TYPE.scenePosition);
         for (const avatarId of avatarsId) {
-          await requestFile(`${avatarId}/model.fbx`, "avatarPosition");
+          await requestFile(
+            `${videoId}/${avatarId}/${sceneId}.json`,
+            TYPE.avatarPosition
+          );
         }
 
         const scenePath = `${sceneId}/scene.ply`;
         const avatarsPath = avatarsId.map(
           (avatarId) => `${avatarId}/model.fbx`
         );
-        await requestFile(scenePath, "scene");
+        await requestFile(scenePath, TYPE.scene);
         for (const avatarPath of avatarsPath) {
-          await requestFile(avatarPath, "avatar");
+          await requestFile(avatarPath, TYPE.avatar);
         }
 
         /* ---------------------------- Compose The Scene --------------------------- */
