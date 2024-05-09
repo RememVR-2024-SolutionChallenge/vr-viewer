@@ -36,6 +36,26 @@
 
       async function main() {
         /* -------------------------- Modules And Utilties -------------------------- */
+        function onFileReceived(encodedData) {
+          const base64Data = decodeURIComponent(encodedData);
+          const binaryData = atob(base64Data);
+          const length = binaryData.length;
+          const bytes = new Uint8Array(length);
+
+          for (let i = 0; i < length; i++) {
+            bytes[i] = binaryData.charCodeAt(i);
+          }
+
+          const blob = new Blob([bytes], { type: "application/octet-stream" });
+          return blob;
+        }
+
+        function onTextReceived(encodedData) {
+          const base64Data = decodeURIComponent(encodedData);
+          const binaryData = atob(base64Data);
+          return binaryData;
+        }
+
         async function fetchFile(filePath, returnBlob = true) {
           return new Promise((resolve, reject) => {
             if (typeof FileRequest !== "undefined") {
@@ -60,26 +80,6 @@
               );
             }
           });
-        }
-
-        function onFileReceived(encodedData) {
-          const base64Data = decodeURIComponent(encodedData);
-          const binaryData = atob(base64Data);
-          const length = binaryData.length;
-          const bytes = new Uint8Array(length);
-
-          for (let i = 0; i < length; i++) {
-            bytes[i] = binaryData.charCodeAt(i);
-          }
-
-          const blob = new Blob([bytes], { type: "application/octet-stream" });
-          return blob;
-        }
-
-        function onTextReceived(encodedData) {
-          const base64Data = decodeURIComponent(encodedData);
-          const binaryData = atob(base64Data);
-          return binaryData;
         }
 
         /* ----------------------------- Fetch Metadata ----------------------------- */
