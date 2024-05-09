@@ -91,7 +91,7 @@
       async function main() {
         async function requestFile(filePath, type) {
           if (typeof FileRequest !== "undefined") {
-            await FileRequest.postMessage({ filePath, type });
+            await FileRequest.postMessage(JSON.stringify({ filePath, type }));
           } else {
             throw new Error("FileRequest is not defined");
           }
