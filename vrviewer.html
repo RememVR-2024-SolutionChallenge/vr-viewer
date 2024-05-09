@@ -35,17 +35,20 @@
       import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
       import { FBXLoader } from "FBXLoader";
 
-      // returning in string type
-      function fetchFile(filePath) {
+      function fetchFile(filePath, returnBlob = true) {
         return new Promise((resolve, reject) => {
           if (typeof FileRequest !== "undefined") {
             FileRequest.postMessage(filePath);
             FileRequest.onmessage = async function (event) {
               const file = event.data;
               try {
-                const content = await onFileReceived(file);
-                alert(content);
-                resolve(content);
+                if (returnBlob) {
+                  const content = onFileReceived(file);
+                  resolve(content);
+                } else {
+                  const content = onTextReceived(file);
+                  resolve(content);
+                }
               } catch (error) {
                 reject(error);
               }
@@ -72,6 +75,12 @@
         return blob;
       }
 
+      function onTextReceived(encodedData) {
+        const base64Data = decodeURIComponent(encodedData);
+        const binaryData = atob(base64Data);
+        return binaryData;
+      }
+
       /* ----------------------------- Fetch Metadata ----------------------------- */
       // Get the video ID from the query string
       const urlParams = new URLSearchParams(window.location.search);
@@ -79,21 +88,30 @@
 
       // Get the metadatas from local storage by the videoId
       const metaDataFilePath = `${videoId}/meta-data.json`;
-      const metadata = JSON.parse(await fetchFile(metaDataFilePath));
+      const metadata = JSON.parse(
+        await (
+          await fetchFile(metaDataFilePath, false)
+        ).text
+      );
 
       /* ----------------------------- Fetch Resources ---------------------------- */
       const sceneId = metadata.scene.id;
       const avatarsId = metadata.avatars.map((avatar) => avatar.id);
 
       const scenePosition = JSON.parse(
-        await fetchFile(`${videoId}/${sceneId}.json`)
+        await fetchFile(`${videoId}/${sceneId}.json`, false)
       );
       const avatarsPosition = avatarsId.map(async (avatarId) =>
-        JSON.parse(await fetchFile(`${videoId}/${avatarId}.json`))
+        JSON.parse(await fetchFile(`${videoId}/${avatarId}.json`, false))
       );
 
       const scenePath = `${sceneId}/scene.ply`;
       const avatarsPath = avatarsId.map((avatarId) => `${avatarId}/model.fbx`);
+
+      const sceneUrls = URL.createObjectURL(await fetchFile(scenePath, true));
+      const avatarsUrls = avatarsPath.map(async (avatarPath) =>
+        URL.createObjectURL(await fetchFile(avatarPath, true))
+      );
 
       /* ---------------------------- Compose The Scene --------------------------- */
       const viewer = new GaussianSplats3D.Viewer({
