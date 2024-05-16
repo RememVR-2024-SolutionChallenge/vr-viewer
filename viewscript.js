@@ -9,6 +9,7 @@ const videoId = getQueryParam('video-id');
 console.log(videoId)
 const apiUrl = `https://gateway-server-v2-n3wk2vhygq-uc.a.run.app/vr-video/${videoId}`;
 const accessToken = getQueryParam('accessToken');
+console.log(accessToken);
 // REST API 요청 보내기
 fetch(apiUrl,{
     method: 'GET',
