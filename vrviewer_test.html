@@ -88,29 +88,31 @@
         directionalLight.position.set(0, 1, 0);
         threeScene.add(directionalLight);
 
-        viewer
-          .addSplatScene(scenePath, {
-            streamView: true,
-            position: {
-              x: 0,
-              y: 0,
-              z: 0,
-            },
-            scale: {
-              x: 0,
-              y: 0,
-              z: 0,
-            },
-            rotation: {
-              x: 0,
-              y: 0,
-              z: 0,
-              w: 0,
-            },
-          })
-          .then(() => {
-            viewer.start();
-          });
+        // Fetch the scene first to ensure it's available
+        try {
+          const response = await fetch(scenePath);
+          if (!response.ok) {
+            throw new Error(`Failed to load scene from ${scenePath}`);
+          }
+          const sceneData = await response.arrayBuffer();
+
+          // Once the scene is fetched, proceed to add it to the viewer
+          viewer
+            .addSplatScene(scenePath, {
+              streamView: true,
+              position: [0, 0, 0],
+              scale: [1, 1, 1],
+              rotation: [0, 0, 0, 1],
+            })
+            .then(() => {
+              viewer.start();
+            })
+            .catch((error) => {
+              console.error(`Failed to add splat scene: ${error.message}`);
+            });
+        } catch (error) {
+          console.error(`Error fetching scene: ${error.message}`);
+        }
 
         function animate() {
           requestAnimationFrame(animate);
