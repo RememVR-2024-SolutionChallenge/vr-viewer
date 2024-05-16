@@ -49,10 +49,10 @@
       var sceneUrl = null;
       var avatarsUrl = [];
       var avatarsPath = [
-        "https://storage.googleapis.com/3dgs-storage/sample/sample-avatar-1/model.fbx?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T173231Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=77be42fd811b7470b5918765e7e97bea6156b4403289a6fe6f6d78a29c84def1c687b303c924ceced952a57b10a4b20ec752962e0768d3129f3efd1f3f2aca760cf98e54a9d70695d458a4000216d1e5c33a75473558c7728d908c20dbaeae21a537781b7f54a5bd74017444da9c2f8bb73abc3ffb2dd421c8f7c4e44d5a35e942e3fcfa67996dc61894ae2a4d6f7e7c0bfa10980976fcdf4d02aa9c186d9815b866f5cfa0adf52c786d28f8634125d0c43c3ab7ffe88c403d028eeb5898efd6d03ec6316d30ef9bdd47464c7be4417ac0f7710993676ea9895bcc9198a43801f7b1655a982a05952c438874b7c8c0fa35d4a109970ab5ae514727b7529cfcc8",
+        "https://storage.googleapis.com/3dgs-storage/sample/sample-avatar-1/model.fbx?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T173448Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=8567d7793c8882feb77f7bdbcd833800a17dc0ece6499e4ee72a6d2868daeefcba457577638d8111a661ca8e832b4ed73a35d0037199746d83e3b9834c36263778e25a2d763faa816228109a6fa016b70cda98ba635c61e423635f1e7345b31cb48374127d59aef87979d56e72ba3597d461cb06f64334ae247bf37cf67a313856a129e8e6a67b90812fe7f8024f8b74cc777fbc190dcafa0ea68659bda72776e656034879f2df3574bc3ad5443cc660fb5a83f2c4d0da4d9043b9cf6eec0eee5cbe9bf03d7fc777d12b54468dff4bdcbc547a82a87a8f979b7250228ddee13df47054b6cff1070e177cc3be93c69af31f6399e966ccab1f3f32de86b65e6555",
       ];
       var scenePath =
-        "https://storage.googleapis.com/3dgs-storage/sample/sample-scene-10?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T171736Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=21c4c4319176d77921410f5ef262737cdc33fa220fe7e99ba1271bd7cfac31bb2ef4897a5989662db81c9bbd00928abdac41842b2c5ac12f75815f2d60f87b1c66e6232eae8dacd4eca67b04496853eb5510bab5f56c1f869798a5227a8e5bc5dede12579caadf0646fb7944b01e17178b9dbc6273cef61748c6b7a64b7e2699e8e0ba2fcc1cde1323389cf0217f3dae8ceb7f44204f9faee3e3df929023bc9878745e48fa69aa1502bcae861afc6c9c10a7fcfd2ab0390533028717ddddf809c30ccb7974f06c5f1d0bbc31e61b221507a283449af1e3d11dc1ef665e1eb3be2920a9efd190cc7ac4478c0582941a6c28e8fb47da359539f68eaa8266c853be";
+        "https://storage.googleapis.com/3dgs-storage/sample/sample-scene-10?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T173447Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=61d44aa054c9dc64f4d6ed219acbfd3077087e569f9b7364c773f64db365dbf51a9d43d7e45ee46fbe8ca2ab4c25bffd4e8a63adf1e41ab99787cef32f33d546c8a630f005844621a7d888b0e5dce19f93642d862426952acb4e2cf59abd7460c4b4ab63e1b75ccd682d55fd34f547d0bff8d89db9f68011335ff4c9a58a7c5a9643fa3f1818ff102cd07e447f358286c768e8e8915558f428c05c2dc694a7fe6f56fd56c9efd25cfc2badb43b2774e81e2b207f9e0e2c5efdd67003276e2795fc0cd7fea5b3446ba268c4fdc08c13e75d91c84e99278081f6197cabd769b4e70e55ba66eed9456cbf22ec27161ef7c6679281266445f4387b2ff6c489ac4d66";
       async function main() {
         const viewer = new GaussianSplats3D.Viewer({
           cameraUp: [-0.16412, 0.00561, 0.98642],
@@ -87,7 +87,6 @@
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
         directionalLight.position.set(0, 1, 0);
         threeScene.add(directionalLight);
-
         // Fetch the scene first to ensure it's available
         try {
           const response = await fetch(scenePath);
@@ -96,9 +95,13 @@
           }
           const sceneData = await response.arrayBuffer();
 
+          // Create a blob from the ArrayBuffer and generate a URL for it
+          const blob = new Blob([sceneData]);
+          const blobUrl = URL.createObjectURL(blob);
+
           // Once the scene is fetched, proceed to add it to the viewer
           viewer
-            .addSplatScene(scenePath, {
+            .addSplatScene(blobUrl, {
               streamView: true,
               position: [0, 0, 0],
               scale: [1, 1, 1],
