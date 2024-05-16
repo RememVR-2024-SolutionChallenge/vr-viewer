@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
+    <title>3D Gaussian Splat Demo - Interactive Transformation</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./lib/three.module.js",
+          "@mkkellogg/gaussian-splats-3d": "./lib/gaussian-splats-3d.module.js",
+          "FBXLoader": "./js/FBXLoader.js"
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #000000;
+        color: white;
+        height: 100vh;
+        margin: 0px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
+      import { FBXLoader } from "FBXLoader";
+
+      const TYPE = {
+        metadata: "metadata",
+        scenePosition: "scenePosition",
+        avatarPosition: "avatarPosition",
+        scene: "scene",
+        avatar: "avatar",
+      };
+
+      /* -------------------------- Modules And Utilties -------------------------- */
+      var metadata = null;
+    //   var scenePosition = null;
+    //   var avatarsPosition = [];
+      var sceneUrl = null;
+      var avatarsUrl = [];
+      var avatarsPath = [
+        "https://storage.googleapis.com/3dgs-storage/sample/sample-avatar-1/model.fbx?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T162558Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=1cfb13d7fda8a606678770ecdef62ee9c4cb563bb9b8a51f49a29b8098771511d45a9c017168e8be2547de3dcdba494ffed84990856beecbec14b719c6897a1e2a4044ebf6d95428d13ef4c922d3f7628600a57afbb92c21e918012e37a780b6f1a987105bb37a1ca4eb681f1bce4376c820df5da9ad1fe3a5e1220d6278026933376db46d3c40aa8f6d8082a111b52c2070a0de7ae9aae3ba13dfc41b3864df1876917db4ff4b829be29260c31d15d1aa460655cf5b889f5f9669d234e8b8d4f3e71113ab5e2fc217befefb8cb530e7c512eb1836b944e2a02433572066ff7c3c830f9fd2327566e188228f1397acbcff9b0b4ac9fed9f8f58c3b166d207266",
+      ];
+      var scenePath =
+        "https://storage.googleapis.com/3dgs-storage/sample/sample-scene-10?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T162557Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=5fc1f17eaeb63abcfd12c5dcb516807ad95ebdcb57a8bbea562a5cf7b86b71e062d88518c206c7c902391c39fe720b311d6278095fbbe6b9d16afedb05d9736c62bc460ed58ab687c9342c16b813801a688cd4dc7a6700e1f5e7c93e4e08e5a561d68156264db66c9ee4c88d9ac9b4e5191fcf8dc22cf8a9c4b0dbf7f221ae17a3265176395c6d7d0062abf68ebee3dd380e0a149b11bfff0f8d1154cd3c37c98549204bad03cca95c6ec24f60e713574832b0892133fff5b1e2c7721a2b1b5e4567817fbe784d7da8460dddf659c0679622a4a2128259ea0f4e8a2e35e98780e316bef4d62f8c5c6ea6aeec52e0dd3dc7913f14bf55676a3a2544cb5a955b72";
+
+      async function main() {
+        const viewer = new GaussianSplats3D.Viewer({
+          cameraUp: [-0.16412, 0.00561, 0.98642],
+          initialCameraPosition: [-1.00417, 0.06068, 0.07115],
+          initialCameraLookAt: [0.66885, 0.03159, -0.20574],
+          webXRMode: GaussianSplats3D.WebXRMode.VR,
+        });
+
+        const threeScene = new THREE.Scene();
+        const loader = new FBXLoader();
+        let fbxObject;
+        let mixer;
+        const clock = new THREE.Clock();
+
+        for (let i = 0; i < avatarsPath.length; i++) {
+          const model = await new Promise((resolve, reject) => {
+            loader.load(avatarsPath[i], resolve, undefined, reject);
+          });
+          model.position.set(0, 0, 0);
+          model.scale.set(0, 0, 0);
+          model.quaternion.copy(new THREE.Quaternion(0, 0, 0, 0));
+          threeScene.add(model);
+          fbxObject = model;
+          mixer = new THREE.AnimationMixer(model);
+          viewer.threeScene = threeScene;
+          console.log("FBX Model loaded and added to the scene.");
+        }
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        threeScene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(0, 1, 0);
+        threeScene.add(directionalLight);
+
+        await viewer
+          .addSplatScene(scenePath[0], {
+            streamView: true,
+            position: {
+              x: 0,
+              y: 0,
+              z: 0,
+            },
+            scale: {
+              x: 0,
+              y: 0,
+              z: 0,
+            },
+
+            rotation: {
+              x: 0,
+              y: 0,
+              z: 0,
+              w: 0,
+            },
+          })
+          .then(() => {
+            viewer.start();
+          });
+
+        function animate() {
+          requestAnimationFrame(animate);
+          const delta = clock.getDelta(); // Get the delta time since last frame
+          if (mixer) mixer.update(delta); // Update the animation mixer if it's initialized
+          viewer.update(); // Update the viewer to render the changes
+        }
+        animate(); // Start the animation loop
+      }
+
+      main();
+    </script>
+  </body>
+</html>
