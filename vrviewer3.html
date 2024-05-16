@@ -57,7 +57,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
-		function showStorageUrls(data) {
+		function addStorageUrls(data) {
             const urls = [...data.avatars.flatMap(avatar => avatar.storageUrls)];
             avatarsPath = urls
 			scenePath = [...data.scene.storageUrls] 
@@ -80,8 +80,7 @@
         	})
         	.then(response => response.json())
         	.then(data => {
-            	displayData(data);
-            	showStorageUrls(data);
+            	addStorageUrls(data);
         	})
         	.catch(error => {
             	console.error('Error:', error);
