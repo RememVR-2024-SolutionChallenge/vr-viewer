@@ -49,10 +49,10 @@
       var sceneUrl = null;
       var avatarsUrl = [];
       var avatarsPath = [
-        "https://storage.googleapis.com/3dgs-storage/sample/sample-avatar-1/model.fbx?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T164815Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=cf18e8ca1280b538c96db883b0581bcdf8c948f2e50597bee9ca31bdb5166be8baf919e2f4149ef293a123e5dff773b79704c45aabdcf26bab1813ae9b227dea7c3cae2a44810cdebbb78f4ac9f89c47c8a4824c555d6796f79a21e172c99062219532501dd1832800a08f816bf3297307803fc831d91730e99528f6b3919b0d748175a234f8e95ed5726b747df56f38734bb304c605d28b3a713ff3eaa4668de77f7ed14b0cda8430a99145664a28ca59115dbbc30136767260348eee09e1dd58286431ecd0466b6dad02f1a884d97f38590e42d44f2bfb7953076fe7b62ad28efd4093e3eabde84bfe62717049fc6e1ed28b4e13f3a1fd53296d1186505c0b",
+        "https://storage.googleapis.com/3dgs-storage/sample/sample-avatar-1/model.fbx?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T170313Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=869113d35ed95125241debd3ce7f3196b7ac4cc18e1edfb8f560ab83f183ab3596d432ac51be519a3abea25faf871e1c6d7567835cb79de8db4a7499b10d3173b1886594c0dd2a0daeff7565d6e12546094a9d23fa7c2c2c631b8fc5de363c6f41389b4e715b80b116c9982deb91c0c84a036ea391666ea8e2f0e08345e2b9efbff427e842d7819fc3cff4c16b971a2fce47068ab25f3f8a2fb4b9a99cadaaa4acc8bb161e5adc149ad0777a4a2c14b1cc36248b364c8e8fd43eae4955d7ef446163464ec57561fd979356d0a5946637ae4223dcfd666869a10d2e9fc10df4deccc429e74b311dd80209519e3d3d9049e088862a0d890245e454c5d7cd8b2fbf",
       ];
       var scenePath =
-        "https://storage.googleapis.com/3dgs-storage/sample/sample-scene-10?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T164815Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=67dc3ac086cc7131f3f767c8f7583430a77c3cc0e289c2e0132cc68bf6782c33a959be11a0f5370285550625782abea18696cbcdbca28a36fe532a0d8dd2093871644de4cd35e51099361e061b7e1868a1e6f7998eea9d770aee19c1786561b7bb30ad33f0cb2e43e40ad0d777e54b17337905731d1f4557b8d7dd338d9b207e71813000bca93ecc14ad9c8f303712cdbdb87bb3f741237b0dae71b2d40c1f6ee8b7047be069d7e7ce82ed75e34fcb3b601b1eabaa144819c6fb00ebdacd373fa95647a12c1bf09db253f3bfad7d0633c78c66d0e6a216705a5a35708a19c08ad38d9fe0a97ab799a1934aeb452cdb46619888561084ba7e4f4dec9403c66c24";
+        "https://storage.googleapis.com/3dgs-storage/sample/sample-scene-10?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T170312Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=8720320a001ed7397a09e634c7920d7eb1138fb0101903223e1464b5df2e01ba09dfcdba30d169879ee6dea5c6b124374ca1e32b39ebdf7d5d2c3299910385b1e16bb7e3a1c7872e468bf8aa4659871079937c2bfcad73afd95264ae460c387f4c141a44ec13cc4055c50f23c8cfc55c16b288b5b76ce39568d9f024f5863afebb8575c95cb820e77ac993f06a75e43f78dd10da90cd991b0d1dcf7ce2dba7b51b495f101aad415ad35461d7a652f07e2d754bda55f5269a210e4fed4ed00c399d5b2ca6319e64150ef34694afd0ac413e528b291e1472eabea47d50267e61a2df03064d0fc1cd142733af7cd7f49cae7976452c352da6854a48bea8b3b9be71";
 
       async function main() {
         const viewer = new GaussianSplats3D.Viewer({
@@ -89,26 +89,29 @@
         directionalLight.position.set(0, 1, 0);
         threeScene.add(directionalLight);
 
-        await viewer.addSplatScene(scenePath, {
-          streamView: true,
-          position: {
-            x: 0,
-            y: 0,
-            z: 0,
-          },
-          scale: {
-            x: 0,
-            y: 0,
-            z: 0,
-          },
-          rotation: {
-            x: 0,
-            y: 0,
-            z: 0,
-            w: 0,
-          },
-        });
-        await viewer.start();
+        viewer
+          .addSplatScene(scenePath, {
+            streamView: true,
+            position: {
+              x: 0,
+              y: 0,
+              z: 0,
+            },
+            scale: {
+              x: 0,
+              y: 0,
+              z: 0,
+            },
+            rotation: {
+              x: 0,
+              y: 0,
+              z: 0,
+              w: 0,
+            },
+          })
+          .then(() => {
+            viewer.start();
+          });
 
         function animate() {
           requestAnimationFrame(animate);
