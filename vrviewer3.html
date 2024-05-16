@@ -49,6 +49,7 @@
       var sceneUrl = null;
       var avatarsUrl = [];
 	  var avatarsPath = []
+	  var scenePath = null;
 
       async function main() {
         
@@ -56,34 +57,37 @@
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
         }
-		function showtSorageUrls(data) {
-            const urls = [...data.scene.storageUrls, ...data.avatars.flatMap(avatar => avatar.storageUrls)];
+		function showStorageUrls(data) {
+            const urls = [...data.avatars.flatMap(avatar => avatar.storageUrls)];
             avatarsPath = urls
+			scenePath = [...data.scene.storageUrls] 
         }
 
-        // video-id 값을 읽어옴
-        const videoId = getQueryParam('video-id');
-        console.log(videoId);
-        const apiUrl = `https://gateway-server-v2-n3wk2vhygq-uc.a.run.app/vr-video/${videoId}`;
-        const accessToken = getQueryParam('accessToken');
-        console.log(accessToken);
+        setTimeout(async()=>{
+			// video-id 값을 읽어옴
+			const videoId = getQueryParam('video-id');
+        	console.log(videoId);
+        	const apiUrl = `https://gateway-server-v2-n3wk2vhygq-uc.a.run.app/vr-video/${videoId}`;
+        	const accessToken = getQueryParam('accessToken');
+        	console.log(accessToken);
         
         // REST API 요청 보내기
-        fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            displayData(data);
-            showStorageUrls(data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('content').textContent = 'Error loading data';
-        });
+        	fetch(apiUrl, {
+            	method: 'GET',
+            	headers: {
+                	'Authorization': `Bearer ${accessToken}`
+            	}
+        	})
+        	.then(response => response.json())
+        	.then(data => {
+            	displayData(data);
+            	showStorageUrls(data);
+        	})
+        	.catch(error => {
+            	console.error('Error:', error);
+            	document.getElementById('content').textContent = 'Error loading data';
+        	});
+		},1000)
         /* ---------------------------- Compose The Scene --------------------------- */
         const viewer = new GaussianSplats3D.Viewer({
           cameraUp: [-0.16412, 0.00561, 0.98642],
@@ -138,7 +142,7 @@
         threeScene.add(directionalLight);
 
         await viewer
-          .addSplatScene(scenePath, {
+          .addSplatScene(scenePath[0], {
             streamView: true,
             position: scenePosition.position,
             scale: scenePosition.scale,
