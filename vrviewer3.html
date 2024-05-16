@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()" />
+    <title>3D Gaussian Splat Demo - Interactive Transformation</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./lib/three.module.js",
+          "@mkkellogg/gaussian-splats-3d": "./lib/gaussian-splats-3d.module.js",
+          "FBXLoader": "./js/FBXLoader.js"
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #000000;
+        color: white;
+        height: 100vh;
+        margin: 0px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import * as GaussianSplats3D from "@mkkellogg/gaussian-splats-3d";
+      import { FBXLoader } from "FBXLoader";
+
+      const TYPE = {
+        metadata: "metadata",
+        scenePosition: "scenePosition",
+        avatarPosition: "avatarPosition",
+        scene: "scene",
+        avatar: "avatar",
+      };
+
+      /* -------------------------- Modules And Utilties -------------------------- */
+      var metadata = null;
+      var scenePosition = null;
+      var avatarsPosition = [];
+      var sceneUrl = null;
+      var avatarsUrl = [];
+	  var avatarsPath = []
+
+      async function main() {
+        
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+		function showtSorageUrls(data) {
+            const urls = [...data.scene.storageUrls, ...data.avatars.flatMap(avatar => avatar.storageUrls)];
+            avatarsPath = urls
+        }
+
+        // video-id 값을 읽어옴
+        const videoId = getQueryParam('video-id');
+        console.log(videoId);
+        const apiUrl = `https://gateway-server-v2-n3wk2vhygq-uc.a.run.app/vr-video/${videoId}`;
+        const accessToken = getQueryParam('accessToken');
+        console.log(accessToken);
+        
+        // REST API 요청 보내기
+        fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayData(data);
+            showStorageUrls(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('content').textContent = 'Error loading data';
+        });
+        /* ---------------------------- Compose The Scene --------------------------- */
+        const viewer = new GaussianSplats3D.Viewer({
+          cameraUp: [-0.16412, 0.00561, 0.98642],
+          initialCameraPosition: [-1.00417, 0.06068, 0.07115],
+          initialCameraLookAt: [0.66885, 0.03159, -0.20574],
+          webXRMode: GaussianSplats3D.WebXRMode.VR,
+        });
+
+        const threeScene = new THREE.Scene();
+        const loader = new FBXLoader();
+        let fbxObject;
+        let mixer;
+        const clock = new THREE.Clock();
+
+        // Set initial rotation
+        // const initialQuaternion = new THREE.Quaternion(0.51, -0.45, -0.52, 0.52);
+
+        for (let i = 0; i < avatarsPath.length; i++) {
+          const model = await new Promise((resolve, reject) => {
+            loader.load(avatarsPath[i], resolve, undefined, reject);
+          });
+          model.position.set(
+            avatarsPosition[i].position.x,
+            avatarsPosition[i].position.y,
+            avatarsPosition[i].position.z
+          );
+          model.scale.set(
+            avatarsPosition[i].scale.x,
+            avatarsPosition[i].scale.y,
+            avatarsPosition[i].scale.z
+          );
+          model.quaternion.copy(
+            new THREE.Quaternion(
+              avatarsPosition[i].roation.x,
+              avatarsPosition[i].roation.y,
+              avatarsPosition[i].roation.z,
+              avatarsPosition[i].roation.w
+            )
+          );
+          threeScene.add(model);
+          fbxObject = model;
+          mixer = new THREE.AnimationMixer(model);
+          viewer.threeScene = threeScene;
+          console.log("FBX Model loaded and added to the scene.");
+        }
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        threeScene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(0, 1, 0);
+        threeScene.add(directionalLight);
+
+        await viewer
+          .addSplatScene(scenePath, {
+            streamView: true,
+            position: scenePosition.position,
+            scale: scenePosition.scale,
+            rotation: scenePosition.rotation,
+          })
+          .then(() => {
+            viewer.start();
+          });
+
+        function animate() {
+          requestAnimationFrame(animate);
+          const delta = clock.getDelta(); // Get the delta time since last frame
+          if (mixer) mixer.update(delta); // Update the animation mixer if it's initialized
+          viewer.update(); // Update the viewer to render the changes
+        }
+        animate(); // Start the animation loop
+      }
+
+      main();
+    </script>
+  </body>
+</html>
