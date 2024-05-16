@@ -89,30 +89,26 @@
         directionalLight.position.set(0, 1, 0);
         threeScene.add(directionalLight);
 
-        await viewer
-          .addSplatScene(scenePath, {
-            streamView: true,
-            position: {
-              x: 0,
-              y: 0,
-              z: 0,
-            },
-            scale: {
-              x: 0,
-              y: 0,
-              z: 0,
-            },
-
-            rotation: {
-              x: 0,
-              y: 0,
-              z: 0,
-              w: 0,
-            },
-          })
-          .then(() => {
-            viewer.start();
-          });
+        await viewer.addSplatScene(scenePath, {
+          streamView: true,
+          position: {
+            x: 0,
+            y: 0,
+            z: 0,
+          },
+          scale: {
+            x: 0,
+            y: 0,
+            z: 0,
+          },
+          rotation: {
+            x: 0,
+            y: 0,
+            z: 0,
+            w: 0,
+          },
+        });
+        viewer.start();
 
         function animate() {
           requestAnimationFrame(animate);
