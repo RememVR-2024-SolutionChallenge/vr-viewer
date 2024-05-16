@@ -44,15 +44,15 @@
 
       /* -------------------------- Modules And Utilties -------------------------- */
       var metadata = null;
-    //   var scenePosition = null;
-    //   var avatarsPosition = [];
+      //   var scenePosition = null;
+      //   var avatarsPosition = [];
       var sceneUrl = null;
       var avatarsUrl = [];
       var avatarsPath = [
-        "https://storage.googleapis.com/3dgs-storage/sample/sample-avatar-1/model.fbx?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T162558Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=1cfb13d7fda8a606678770ecdef62ee9c4cb563bb9b8a51f49a29b8098771511d45a9c017168e8be2547de3dcdba494ffed84990856beecbec14b719c6897a1e2a4044ebf6d95428d13ef4c922d3f7628600a57afbb92c21e918012e37a780b6f1a987105bb37a1ca4eb681f1bce4376c820df5da9ad1fe3a5e1220d6278026933376db46d3c40aa8f6d8082a111b52c2070a0de7ae9aae3ba13dfc41b3864df1876917db4ff4b829be29260c31d15d1aa460655cf5b889f5f9669d234e8b8d4f3e71113ab5e2fc217befefb8cb530e7c512eb1836b944e2a02433572066ff7c3c830f9fd2327566e188228f1397acbcff9b0b4ac9fed9f8f58c3b166d207266",
+        "https://storage.googleapis.com/3dgs-storage/sample/sample-avatar-1/model.fbx?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T164815Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=cf18e8ca1280b538c96db883b0581bcdf8c948f2e50597bee9ca31bdb5166be8baf919e2f4149ef293a123e5dff773b79704c45aabdcf26bab1813ae9b227dea7c3cae2a44810cdebbb78f4ac9f89c47c8a4824c555d6796f79a21e172c99062219532501dd1832800a08f816bf3297307803fc831d91730e99528f6b3919b0d748175a234f8e95ed5726b747df56f38734bb304c605d28b3a713ff3eaa4668de77f7ed14b0cda8430a99145664a28ca59115dbbc30136767260348eee09e1dd58286431ecd0466b6dad02f1a884d97f38590e42d44f2bfb7953076fe7b62ad28efd4093e3eabde84bfe62717049fc6e1ed28b4e13f3a1fd53296d1186505c0b",
       ];
       var scenePath =
-        "https://storage.googleapis.com/3dgs-storage/sample/sample-scene-10?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T162557Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=5fc1f17eaeb63abcfd12c5dcb516807ad95ebdcb57a8bbea562a5cf7b86b71e062d88518c206c7c902391c39fe720b311d6278095fbbe6b9d16afedb05d9736c62bc460ed58ab687c9342c16b813801a688cd4dc7a6700e1f5e7c93e4e08e5a561d68156264db66c9ee4c88d9ac9b4e5191fcf8dc22cf8a9c4b0dbf7f221ae17a3265176395c6d7d0062abf68ebee3dd380e0a149b11bfff0f8d1154cd3c37c98549204bad03cca95c6ec24f60e713574832b0892133fff5b1e2c7721a2b1b5e4567817fbe784d7da8460dddf659c0679622a4a2128259ea0f4e8a2e35e98780e316bef4d62f8c5c6ea6aeec52e0dd3dc7913f14bf55676a3a2544cb5a955b72";
+        "https://storage.googleapis.com/3dgs-storage/sample/sample-scene-10?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gmail-431%40rememberme-2024.iam.gserviceaccount.com%2F20240516%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20240516T164815Z&X-Goog-Expires=600&X-Goog-SignedHeaders=host&X-Goog-Signature=67dc3ac086cc7131f3f767c8f7583430a77c3cc0e289c2e0132cc68bf6782c33a959be11a0f5370285550625782abea18696cbcdbca28a36fe532a0d8dd2093871644de4cd35e51099361e061b7e1868a1e6f7998eea9d770aee19c1786561b7bb30ad33f0cb2e43e40ad0d777e54b17337905731d1f4557b8d7dd338d9b207e71813000bca93ecc14ad9c8f303712cdbdb87bb3f741237b0dae71b2d40c1f6ee8b7047be069d7e7ce82ed75e34fcb3b601b1eabaa144819c6fb00ebdacd373fa95647a12c1bf09db253f3bfad7d0633c78c66d0e6a216705a5a35708a19c08ad38d9fe0a97ab799a1934aeb452cdb46619888561084ba7e4f4dec9403c66c24";
 
       async function main() {
         const viewer = new GaussianSplats3D.Viewer({
